@@ -2,6 +2,7 @@
 .env
 /dist
 /node_modules
+tasks.txt
 
 # Logs
 logs
