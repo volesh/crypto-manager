@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  password     String
+  fixedIncome  Float          @default(0)
+  fiat         Float          @default(0)
+  invested     Float          @default(0)
+  withdraw     Float          @default(0)
+  transactions Transactions[]
+  coins        Coins[]
+  walletValues WalletValues[]
+  tokens       Tokens[]
+  deposits     Deposits[]
+}
+
+model Transactions {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  fromCount  Float
+  toCount    Float
+  income     Float?
+  fromCoinId String
+  toCoinId   String
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+}
+
+model Coins {
+  id         String @id @default(uuid())
+  coinId     String
+  coinName   String
+  amount     Float
+  img        String
+  spendMoney Float
+  avgPrice   Float
+  user       User   @relation(fields: [userId], references: [id])
+  userId     String
+}
+
+model WalletValues {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  amount    Float
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Tokens {
+  id           String   @id @default(uuid())
+  accessToken  String
+  refreshToken String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Deposits {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  amount    Float
+  currency  String   @default("usd")
+  status    Boolean
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}

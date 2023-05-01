@@ -26,6 +26,10 @@ module.exports = {
     'import/newline-after-import': ['error', { count: 1 }],
     'import/no-duplicates': 'error',
     'no-console': 'warn',
+    'editor.formatOnSave': true,
+    '[prisma]': {
+      'editor.defaultFormatter': 'Prisma.prisma',
+    },
     'sort-imports': [
       'error',
       {
