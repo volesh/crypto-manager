@@ -1,5 +1,8 @@
+import { Prisma } from '@prisma/client';
 import { UserService } from './user.service';
-import { Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put } from '@nestjs/common';
+import { ResponseUserI } from 'src/general/interfaces/user.interfaces/response.user.interface';
+import { CreateUserDto } from './dto/create.user.dto';
 
 @Controller('user')
 export class UserController {
@@ -7,15 +10,16 @@ export class UserController {
 
   @Get()
   getUser() {
-    return this.userService.getUser();
+    return this.userService.getUserByParam({ id: '123' });
   }
 
   @Post()
-  createUser() {
-    return this.userService.createUser({
-      name: 'Vasyl',
-      email: 'test@test.com',
-      password: 'qwer1234',
-    });
+  createUser(@Body() user: CreateUserDto): Promise<ResponseUserI> {
+    return this.userService.createUser(user);
+  }
+
+  @Put()
+  updateUser(@Body() user: Prisma.UserUpdateInput): Promise<ResponseUserI> {
+    return this.userService.updateUser(user, '1');
   }
 }
