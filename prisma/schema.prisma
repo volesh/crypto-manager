@@ -42,6 +42,7 @@ model Coins {
   id         String @id @default(uuid())
   coinId     String
   coinName   String
+  symbol     String
   amount     Float
   img        String
   spendMoney Float

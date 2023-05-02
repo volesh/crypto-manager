@@ -1,8 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { UserService } from './user.service';
 import { Body, Controller, Get, Post, Put } from '@nestjs/common';
-import { ResponseUserI } from 'src/general/interfaces/user.interfaces/response.user.interface';
+import { ResponseUserI } from 'src/general/interfaces/user/response.user.interface';
 import { CreateUserDto } from './dto/create.user.dto';
+import { InitUserDto } from './dto/init.data';
 
 @Controller('user')
 export class UserController {
@@ -16,6 +17,11 @@ export class UserController {
   @Post()
   createUser(@Body() user: CreateUserDto): Promise<ResponseUserI> {
     return this.userService.createUser(user);
+  }
+
+  @Post('/init')
+  initData(@Body() initData: InitUserDto): Promise<ResponseUserI> {
+    return this.userService.initData(initData, '123');
   }
 
   @Put()
