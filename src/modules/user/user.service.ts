@@ -68,12 +68,11 @@ export class UserService {
     // calculate balance and income
     const { balance, notFixedIncome } =
       await this.coinsService.calculateCryptoBalance(id);
-
     //return data
     const userForResponse = createUserPresenter(updatedUser);
     return {
       ...userForResponse,
-      balance,
+      balance: balance + userForResponse.fiat,
       notFixedIncome,
       totalIncome: userForResponse.fixedIncome + notFixedIncome,
     };
@@ -89,6 +88,7 @@ export class UserService {
   // Calculate invested money !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   calculateInvested(data: InitUserDto): number {
     let invested = data.fiat;
+
     invested = data.coins.reduce((accum, coin) => {
       return (accum += coin.spendMoney);
     }, invested);

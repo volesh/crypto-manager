@@ -13,7 +13,7 @@ export class UserController {
   @Get()
   getUser() {
     return this.userService.getUserByParam({
-      id: '72256c56-d087-441a-a73e-de953c6ced60',
+      id: 'de5c7e68-2013-44a5-b620-f4398dee7262',
     });
   }
 
@@ -26,7 +26,7 @@ export class UserController {
   initUser(@Body() initData: InitUserDto): Promise<GetUserI> {
     return this.userService.initUser(
       initData,
-      '72256c56-d087-441a-a73e-de953c6ced60',
+      'de5c7e68-2013-44a5-b620-f4398dee7262',
     );
   }
 }
