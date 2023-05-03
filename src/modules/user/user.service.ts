@@ -7,11 +7,11 @@ import { Prisma, User } from '@prisma/client';
 import { PasswordHelper } from 'src/general/helpers/password.helper';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/create.user.dto';
-import { createUserPresenter } from 'src/general/presenters/user';
 import { InitUserDto } from './dto/init.data';
 import { CoinsService } from '../coins/coins.service';
 import { CreatedUserI } from 'src/general/interfaces/user/created.user.interface';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
+import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
 
 @Injectable()
 export class UserService {
@@ -19,6 +19,12 @@ export class UserService {
     private readonly prisma: PrismaService,
     private readonly coinsService: CoinsService,
   ) {}
+
+  // Get One User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getOneUser(id: string) {
+    const user = await this.getFullUserInfo({ id });
+    return createUserPresenter(user);
+  }
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createUser(user: CreateUserDto): Promise<CreatedUserI> {
@@ -75,6 +81,25 @@ export class UserService {
       balance: balance + userForResponse.fiat,
       notFixedIncome,
       totalIncome: userForResponse.fixedIncome + notFixedIncome,
+    };
+  }
+
+  // Get full User Info !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getFullUserInfo(where: Prisma.UserWhereUniqueInput) {
+    // check is user exist
+    const isUserExist = await this.getUserByParam(where);
+    if (!isUserExist) {
+      throw new NotFoundException(`User not found`);
+    }
+    // calculate balance and income
+    const { balance, notFixedIncome } =
+      await this.coinsService.calculateCryptoBalance(isUserExist.id);
+    //return data
+    return {
+      ...isUserExist,
+      balance: balance + isUserExist.fiat,
+      notFixedIncome,
+      totalIncome: isUserExist.fixedIncome + notFixedIncome,
     };
   }
 
