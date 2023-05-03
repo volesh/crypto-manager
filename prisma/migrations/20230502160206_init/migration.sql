@@ -4,10 +4,11 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "fixedIncome" DOUBLE PRECISION NOT NULL,
-    "fiat" DOUBLE PRECISION NOT NULL,
-    "invested" DOUBLE PRECISION NOT NULL,
-    "withdraw" DOUBLE PRECISION NOT NULL,
+    "fixedIncome" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "fiat" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "isInitialized" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -31,6 +32,7 @@ CREATE TABLE "Coins" (
     "id" TEXT NOT NULL,
     "coinId" TEXT NOT NULL,
     "coinName" TEXT NOT NULL,
+    "symbol" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "img" TEXT NOT NULL,
     "spendMoney" DOUBLE PRECISION NOT NULL,
