@@ -29,9 +29,4 @@ export class UserController {
       '72256c56-d087-441a-a73e-de953c6ced60',
     );
   }
-
-  @Put()
-  updateUser(@Body() user: Prisma.UserUpdateInput): Promise<CreatedUserI> {
-    return this.userService.updateUser(user, '1');
-  }
 }
