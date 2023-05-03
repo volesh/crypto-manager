@@ -1,4 +1,4 @@
-export interface ResponseUserI {
+export interface CreatedUserI {
   id: string;
   name: string;
   email: string;
@@ -6,4 +6,5 @@ export interface ResponseUserI {
   fiat: number;
   invested: number;
   withdraw: number;
+  isInitialized: boolean;
 }

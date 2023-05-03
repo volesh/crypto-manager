@@ -5,14 +5,6 @@ export class CreateCoinDto {
   @IsNotEmpty()
   coinId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  coinName: string;
-
-  @IsString()
-  @IsNotEmpty()
-  symbol: string;
-
   @IsNumber()
   @IsNotEmpty()
   amount: number;
@@ -20,8 +12,4 @@ export class CreateCoinDto {
   @IsNumber()
   @IsNotEmpty()
   spendMoney: number;
-
-  @IsString()
-  @IsNotEmpty()
-  img: string;
 }

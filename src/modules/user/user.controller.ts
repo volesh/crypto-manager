@@ -1,9 +1,10 @@
 import { Prisma } from '@prisma/client';
 import { UserService } from './user.service';
 import { Body, Controller, Get, Post, Put } from '@nestjs/common';
-import { ResponseUserI } from 'src/general/interfaces/user/response.user.interface';
+import { CreatedUserI } from 'src/general/interfaces/user/created.user.interface';
 import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
+import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 
 @Controller('user')
 export class UserController {
@@ -11,21 +12,26 @@ export class UserController {
 
   @Get()
   getUser() {
-    return this.userService.getUserByParam({ id: '123' });
+    return this.userService.getUserByParam({
+      id: '72256c56-d087-441a-a73e-de953c6ced60',
+    });
   }
 
   @Post()
-  createUser(@Body() user: CreateUserDto): Promise<ResponseUserI> {
+  createUser(@Body() user: CreateUserDto): Promise<CreatedUserI> {
     return this.userService.createUser(user);
   }
 
   @Post('/init')
-  initData(@Body() initData: InitUserDto): Promise<ResponseUserI> {
-    return this.userService.initData(initData, '123');
+  initUser(@Body() initData: InitUserDto): Promise<GetUserI> {
+    return this.userService.initUser(
+      initData,
+      '72256c56-d087-441a-a73e-de953c6ced60',
+    );
   }
 
   @Put()
-  updateUser(@Body() user: Prisma.UserUpdateInput): Promise<ResponseUserI> {
+  updateUser(@Body() user: Prisma.UserUpdateInput): Promise<CreatedUserI> {
     return this.userService.updateUser(user, '1');
   }
 }

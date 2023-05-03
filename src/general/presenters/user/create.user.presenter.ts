@@ -1,8 +1,18 @@
 import { User } from '@prisma/client';
-import { ResponseUserI } from 'src/general/interfaces/user/response.user.interface';
+import { CreatedUserI } from 'src/general/interfaces/user/created.user.interface';
 
-export const createUserPresenter = (user: User): ResponseUserI => {
-  const { id, name, email, invested, fiat, fixedIncome, withdraw } = user;
+export const createUserPresenter = (user: User): CreatedUserI => {
+  const {
+    id,
+    name,
+    email,
+    invested,
+    fiat,
+    fixedIncome,
+    withdraw,
+    isInitialized,
+  } = user;
+
   return {
     id,
     name,
@@ -11,5 +21,6 @@ export const createUserPresenter = (user: User): ResponseUserI => {
     fiat,
     fixedIncome,
     withdraw,
+    isInitialized,
   };
 };

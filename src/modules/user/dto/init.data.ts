@@ -6,14 +6,6 @@ export class InitUserDto {
   @IsNotEmpty()
   fiat: number;
 
-  @IsNumber()
-  @IsNotEmpty()
-  invested: number;
-
-  @IsNumber()
-  @IsNotEmpty()
-  fixedIncome;
-
   @IsArray()
   @IsNotEmpty()
   coins: CreateCoinDto[];
