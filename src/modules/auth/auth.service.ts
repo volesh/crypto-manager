@@ -62,7 +62,9 @@ export class AuthService {
   // Refresh !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async refresh(id: string, token: string): Promise<TokensI> {
     await this.prisma.tokens.deleteMany({ where: { refreshToken: token } });
-    return this.tokensHelper.generateTokens(id);
+    const tokens = await this.tokensHelper.generateTokens(id);
+    await this.saveTokens({ ...tokens, user: { connect: { id } } });
+    return tokens;
   }
 
   // Frogot passwoord !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

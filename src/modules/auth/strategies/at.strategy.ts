@@ -17,8 +17,6 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(req: Request, payload: any) {
     let accessToken = req.get('Authorization').replace('Bearer', '').trim();
-    console.log(accessToken);
-
     if (!accessToken) {
       return false;
     }
