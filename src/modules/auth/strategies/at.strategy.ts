@@ -17,13 +17,16 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
   async validate(req: Request, payload: any) {
     let accessToken = req.get('Authorization').replace('Bearer', '').trim();
+    console.log(accessToken);
+
     if (!accessToken) {
       return false;
     }
-    const token = await this.prisma.tokens.findFirstOrThrow({
-      where: { accessToken },
-    });
-    if (!token) {
+    try {
+      await this.prisma.tokens.findFirstOrThrow({
+        where: { accessToken },
+      });
+    } catch {
       return false;
     }
     return { ...payload, token: accessToken };

@@ -1,5 +1,13 @@
-import { Body, Controller, Post, UseGuards, Get, Req } from '@nestjs/common';
-import { AuthService } from './services/auth.service';
+import {
+  Body,
+  Controller,
+  Post,
+  UseGuards,
+  Get,
+  Req,
+  Patch,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
@@ -38,8 +46,8 @@ export class AuthController {
     return this.authService.forgotPass(email);
   }
 
-  // Code verefication !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  @Post('/changePass')
+  // Change password !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @Patch('/changePass')
   codeVerefication(@Body() data: ChangePassDto): Promise<StringresponseI> {
     return this.authService.changePassword(data);
   }

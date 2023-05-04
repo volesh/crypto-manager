@@ -1,10 +1,10 @@
-import { TokensTypeEnum } from './../../../general/enums/tokens.types.enum';
+import { TokensTypeEnum } from '../../general/enums/tokens.types.enum';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LoginDto } from '../dto/login.dto';
+import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma } from '@prisma/client';
 import { PasswordHelper } from 'src/general/helpers/password.helper';
@@ -12,10 +12,10 @@ import { JwtService } from '@nestjs/jwt';
 import { envConfig } from 'src/general/configs/envConfig';
 import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { UserService } from '../../user/user.service';
+import { UserService } from '../user/user.service';
 import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ChangePassDto } from '../dto/change.pass.dto';
+import { ChangePassDto } from './dto/change.pass.dto';
 import { ReqUserI } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
@@ -53,7 +53,7 @@ export class AuthService {
 
   // Logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async logout(data: ReqUserI): Promise<StringresponseI> {
-    this.prisma.tokens.deleteMany({
+    await this.prisma.tokens.deleteMany({
       where: { userId: data.id, accessToken: data.token },
     });
     return { status: 'Logout successful' };
@@ -115,7 +115,7 @@ export class AuthService {
     type: TokensTypeEnum,
   ): Promise<boolean> {
     const token = await this.prisma.actionTokens.findFirst({
-      where: { ...data, type },
+      where: { userEmail: data.email, value: data.code, type },
     });
     if (!token) {
       throw new BadRequestException('Wrong token');

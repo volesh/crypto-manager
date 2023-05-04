@@ -1,4 +1,4 @@
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsStrongPassword } from 'class-validator';
 
 export class ChangePassDto {
   @IsNotEmpty()
@@ -7,6 +7,13 @@ export class ChangePassDto {
   @IsNotEmpty()
   code: number;
 
+  @IsStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minNumbers: 1,
+    minUppercase: 0,
+    minSymbols: 0,
+  })
   @IsNotEmpty()
   newPassword: string;
 }

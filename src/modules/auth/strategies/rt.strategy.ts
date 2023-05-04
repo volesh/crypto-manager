@@ -17,13 +17,15 @@ export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
 
   async validate(req: Request, payload: any) {
     const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
+
     if (!refreshToken) {
       return false;
     }
-    const token = await this.prisma.tokens.findFirstOrThrow({
-      where: { refreshToken },
-    });
-    if (!token) {
+    try {
+      await this.prisma.tokens.findFirstOrThrow({
+        where: { refreshToken },
+      });
+    } catch {
       return false;
     }
     return { ...payload, token: refreshToken };
