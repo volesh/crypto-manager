@@ -9,15 +9,17 @@ import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
 import { CoinsService } from '../coins/coins.service';
-import { CreatedUserI } from 'src/general/interfaces/user/created.user.interface';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
+import { TokensHelper } from 'src/general/helpers/tokens.helper';
+import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly coinsService: CoinsService,
+    private readonly tokensHelper: TokensHelper,
   ) {}
 
   // Get One User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -27,7 +29,7 @@ export class UserService {
   }
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createUser(user: CreateUserDto): Promise<CreatedUserI> {
+  async createUser(user: CreateUserDto): Promise<LoginResponseI> {
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
@@ -41,8 +43,16 @@ export class UserService {
     const createdUser = await this.prisma.user.create({
       data: { ...user, password: hashedPassword },
     });
+    const tokens = await this.tokensHelper.generateTokens(createdUser.id);
+    await this.prisma.tokens.create({
+      data: {
+        ...tokens,
+        user: { connect: { id: createdUser.id } },
+      },
+    });
     // Return user without password
-    return createUserPresenter(createdUser);
+    const userForResponse = createUserPresenter(createdUser);
+    return { user: userForResponse, tokens };
   }
 
   // Init Users Data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -108,6 +118,15 @@ export class UserService {
     where: Partial<Prisma.UserWhereUniqueInput>,
   ): Promise<User | null> {
     return this.prisma.user.findUnique({ where });
+  }
+
+  // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async updateUser(data: Prisma.UserUpdateInput, email: string): Promise<User> {
+    const isUserExist = await this.getUserByParam({ email });
+    if (!isUserExist) {
+      throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return this.prisma.user.update({ where: { email }, data });
   }
 
   // Calculate invested money !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
