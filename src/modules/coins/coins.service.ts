@@ -26,7 +26,7 @@ export class CoinsService {
         symbol: selectedCoin.symbol,
         img: selectedCoin.image,
         avgPrice,
-        userId,
+        user: { connect: { id: userId } },
       },
     });
   }
@@ -48,8 +48,6 @@ export class CoinsService {
       balance += market.current_price * coin.amount;
       notFixedIncome += market.current_price * coin.amount - coin.spendMoney;
     });
-    // balance = Math.round(balance * 1000) / 1000;
-    // notFixedIncome = Math.round(notFixedIncome * 1000) / 1000;
     balance = +balance.toFixed(3);
     notFixedIncome = +notFixedIncome.toFixed(3);
     return { balance, notFixedIncome };

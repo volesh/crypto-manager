@@ -8,7 +8,7 @@ CREATE TABLE "User" (
     "fiat" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "isInitialized" BOOLEAN NOT NULL DEFAULT true,
+    "isInitialized" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -73,6 +73,17 @@ CREATE TABLE "Deposits" (
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "Deposits_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ActionTokens" (
+    "id" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "value" INTEGER NOT NULL,
+    "type" TEXT NOT NULL,
+    "userEmail" TEXT NOT NULL,
+
+    CONSTRAINT "ActionTokens_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
