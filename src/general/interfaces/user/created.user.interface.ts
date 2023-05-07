@@ -3,7 +3,7 @@ export interface CreatedUserI {
   name: string;
   email: string;
   fixedIncome: number;
-  fiat: number;
+  fiat?: number;
   invested: number;
   withdraw: number;
   isInitialized: boolean;

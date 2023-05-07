@@ -51,7 +51,7 @@ export class UserService {
       },
     });
     // Return user without password
-    const userForResponse = createUserPresenter(createdUser);
+    const userForResponse = createUserPresenter({ ...createdUser });
     return { user: userForResponse, tokens };
   }
 
@@ -73,7 +73,7 @@ export class UserService {
     //update user
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { fiat, invested, isInitialized: true },
+      data: { invested, isInitialized: true },
     });
 
     // create new coins for user
@@ -81,14 +81,21 @@ export class UserService {
       await this.coinsService.createCoin(coin, id);
     }
 
+    //Create usd coin
+    await this.coinsService.createFiat(fiat, isUserExist.id);
+
     // calculate balance and income
-    const { balance, notFixedIncome } =
-      await this.coinsService.calculateCryptoBalance(id);
+    const {
+      balance,
+      notFixedIncome,
+      fiat: receivedFiat,
+    } = await this.coinsService.calculateCryptoBalance(id);
     //return data
     const userForResponse = createUserPresenter(updatedUser);
     return {
       ...userForResponse,
-      balance: balance + userForResponse.fiat,
+      balance: balance + receivedFiat,
+      fiat: receivedFiat,
       notFixedIncome,
       totalIncome: userForResponse.fixedIncome + notFixedIncome,
     };
@@ -102,12 +109,13 @@ export class UserService {
       throw new NotFoundException(`User not found`);
     }
     // calculate balance and income
-    const { balance, notFixedIncome } =
+    const { balance, notFixedIncome, fiat } =
       await this.coinsService.calculateCryptoBalance(isUserExist.id);
     //return data
     return {
       ...isUserExist,
-      balance: balance + isUserExist.fiat,
+      balance: balance + fiat,
+      fiat,
       notFixedIncome,
       totalIncome: isUserExist.fixedIncome + notFixedIncome,
     };
