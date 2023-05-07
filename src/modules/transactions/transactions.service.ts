@@ -9,6 +9,7 @@ import { PrismaService } from 'src/prisma.service';
 import { FiatEnum } from 'src/general/enums/fiat.enam';
 import { UserService } from '../user/user.service';
 import { CoinsService } from '../coins/coins.service';
+import { TransactionsResponseI } from 'src/general/interfaces/transactions/transactions.response.interface';
 
 @Injectable()
 export class TransactionsService {
@@ -18,6 +19,38 @@ export class TransactionsService {
     private readonly coinsService: CoinsService,
   ) {}
 
+  // Get Transactions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getTransactions(
+    userId: string,
+    page: number,
+    perPage: number,
+    orderBy: string,
+    date: string,
+    coinId: string,
+  ): Promise<TransactionsResponseI> {
+    const skip = (page - 1) * perPage;
+    const where = this.generateWhere(date, userId, coinId);
+    const totalTransactions = await this.prisma.transactions.count({
+      where,
+    });
+    const totalPages = Math.ceil(totalTransactions / perPage);
+
+    const transactions = await this.prisma.transactions.findMany({
+      where,
+      include: { fromCoin: true, toCoin: true },
+      skip,
+      take: perPage,
+      orderBy: { [orderBy]: 'asc' },
+    });
+    return {
+      transactions,
+      page: page,
+      perPage,
+      totalPages,
+    };
+  }
+
+  // Create Transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createTransaction(
     transaction: CreateTransactionDto,
     userId: string,
@@ -218,5 +251,30 @@ export class TransactionsService {
     data: Prisma.TransactionsCreateInput,
   ): Promise<Transactions> {
     return this.prisma.transactions.create({ data });
+  }
+
+  generateWhere(date: string, userId: string, coinId): Prisma.UserWhereInput {
+    const whereArr = [];
+    if (date) {
+      const fromDate = new Date(`${date}T00:00:00.000Z`);
+      const toDate = new Date(fromDate.getTime() + 24 * 60 * 60 * 1000);
+      const whereDate = {
+        createdAt: { gte: fromDate, lte: toDate },
+      };
+      whereArr.push(whereDate);
+    }
+    if (coinId) {
+      const whereCoin = {
+        OR: [{ fromCoin: { coinId } }, { toCoin: { coinId } }],
+      };
+      whereArr.push(whereCoin);
+    }
+
+    whereArr.push({ userId });
+
+    if (whereArr.length > 1) {
+      return { AND: whereArr };
+    }
+    return whereArr[0];
   }
 }
