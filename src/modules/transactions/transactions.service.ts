@@ -182,7 +182,7 @@ export class TransactionsService {
     );
     await this.userService.updateUser(
       { fixedIncome: user.fixedIncome + (usd - fromCoin.avgPrice * coin) },
-      user.email,
+      this.userService.validateEmail(user.email),
     );
     return this.saveTransaction({
       fromCount: coin,

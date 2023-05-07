@@ -13,6 +13,7 @@ import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
+import { userInfo } from 'os';
 
 @Injectable()
 export class UserService {
@@ -30,6 +31,8 @@ export class UserService {
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createUser(user: CreateUserDto): Promise<LoginResponseI> {
+    user.email = this.validateEmail(user.email);
+    user.password = user.password.trim();
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
@@ -103,6 +106,9 @@ export class UserService {
 
   // Get full User Info !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getFullUserInfo(where: Prisma.UserWhereUniqueInput) {
+    if (where.email) {
+      where.email = this.validateEmail(where.email);
+    }
     // check is user exist
     const isUserExist = await this.getUserByParam(where);
     if (!isUserExist) {
@@ -125,11 +131,17 @@ export class UserService {
   async getUserByParam(
     where: Partial<Prisma.UserWhereUniqueInput>,
   ): Promise<User | null> {
+    if (where.email) {
+      where.email = this.validateEmail(where.email);
+    }
     return this.prisma.user.findUnique({ where });
   }
 
   // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async updateUser(data: Prisma.UserUpdateInput, email: string): Promise<User> {
+    if (data.email) {
+      data.email = this.validateEmail(data.email as string);
+    }
     const isUserExist = await this.getUserByParam({ email });
     if (!isUserExist) {
       throw new NotFoundException(`User with email ${email} not found`);
@@ -146,5 +158,9 @@ export class UserService {
     }, invested);
 
     return invested;
+  }
+
+  validateEmail(email: string) {
+    return email.toLowerCase().trim();
   }
 }
