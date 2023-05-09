@@ -1,10 +1,5 @@
-import {
-  Coins,
-  Prisma,
-  PrismaClient,
-  Transactions,
-  User,
-} from '@prisma/client';
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
+import { Coins, Prisma, Transactions, User } from '@prisma/client';
 import { CreateTransactionDto } from './dto/create.transaction.dto';
 import {
   BadRequestException,
@@ -15,7 +10,7 @@ import { PrismaService } from 'src/prisma.service';
 import { FiatEnum } from 'src/general/enums/fiat.enam';
 import { UserService } from '../user/user.service';
 import { CoinsService } from '../coins/coins.service';
-import { TransactionsResponseI } from 'src/general/interfaces/transactions/transactions.response.interface';
+import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
 
 @Injectable()
 export class TransactionsService {
@@ -33,9 +28,10 @@ export class TransactionsService {
     orderBy: string,
     date: string,
     coinId: string,
-  ): Promise<TransactionsResponseI> {
+    status: TransactionStatusEnum,
+  ): Promise<PaginationResponseI<Transactions>> {
     const skip = (page - 1) * perPage;
-    const where = this.generateWhere(date, userId, coinId);
+    const where = this.generateWhere(date, userId, coinId, status);
     const totalTransactions = await this.prisma.transactions.count({
       where,
     });
@@ -49,7 +45,7 @@ export class TransactionsService {
       orderBy: { [orderBy]: 'asc' },
     });
     return {
-      transactions,
+      data: transactions,
       page: page,
       perPage,
       totalPages,
@@ -179,6 +175,7 @@ export class TransactionsService {
       price_per_coin: usd / coin,
       user: { connect: { id: userId } },
       purchse_price: usd,
+      status: TransactionStatusEnum.Buy,
     });
   }
 
@@ -231,6 +228,7 @@ export class TransactionsService {
       income,
       user: { connect: { id: user.id } },
       purchse_price: fromCoin.amount * fromCoin.avgPrice,
+      status: TransactionStatusEnum.Sell,
     });
   }
 
@@ -284,6 +282,7 @@ export class TransactionsService {
       toCoin: { connect: { id: toCoinId } },
       user: { connect: { id: userId } },
       purchse_price: fromCoin.amount * fromCoin.avgPrice,
+      status: TransactionStatusEnum.Transfer,
     });
   }
 
@@ -295,7 +294,12 @@ export class TransactionsService {
   }
 
   // Generate Where !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  generateWhere(date: string, userId: string, coinId): Prisma.UserWhereInput {
+  generateWhere(
+    date: string,
+    userId: string,
+    coinId: string,
+    status: TransactionStatusEnum,
+  ): Prisma.UserWhereInput {
     const whereArr = [];
     if (date) {
       const fromDate = new Date(`${date}T00:00:00.000Z`);
@@ -304,6 +308,9 @@ export class TransactionsService {
         createdAt: { gte: fromDate, lte: toDate },
       };
       whereArr.push(whereDate);
+    }
+    if (status) {
+      whereArr.push({ status });
     }
     if (coinId) {
       const whereCoin = {
