@@ -13,6 +13,7 @@ import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
+import { userInfo } from 'os';
 
 @Injectable()
 export class UserService {
@@ -30,6 +31,8 @@ export class UserService {
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createUser(user: CreateUserDto): Promise<LoginResponseI> {
+    user.email = this.validateEmail(user.email);
+    user.password = user.password.trim();
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
@@ -51,7 +54,7 @@ export class UserService {
       },
     });
     // Return user without password
-    const userForResponse = createUserPresenter(createdUser);
+    const userForResponse = createUserPresenter({ ...createdUser });
     return { user: userForResponse, tokens };
   }
 
@@ -73,7 +76,7 @@ export class UserService {
     //update user
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { fiat, invested, isInitialized: true },
+      data: { invested, isInitialized: true },
     });
 
     // create new coins for user
@@ -81,14 +84,21 @@ export class UserService {
       await this.coinsService.createCoin(coin, id);
     }
 
+    //Create usd coin
+    await this.coinsService.createFiat(fiat, isUserExist.id);
+
     // calculate balance and income
-    const { balance, notFixedIncome } =
-      await this.coinsService.calculateCryptoBalance(id);
+    const {
+      balance,
+      notFixedIncome,
+      fiat: receivedFiat,
+    } = await this.coinsService.calculateCryptoBalance(id);
     //return data
     const userForResponse = createUserPresenter(updatedUser);
     return {
       ...userForResponse,
-      balance: balance + userForResponse.fiat,
+      balance: balance + receivedFiat,
+      fiat: receivedFiat,
       notFixedIncome,
       totalIncome: userForResponse.fixedIncome + notFixedIncome,
     };
@@ -96,18 +106,22 @@ export class UserService {
 
   // Get full User Info !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getFullUserInfo(where: Prisma.UserWhereUniqueInput) {
+    if (where.email) {
+      where.email = this.validateEmail(where.email);
+    }
     // check is user exist
     const isUserExist = await this.getUserByParam(where);
     if (!isUserExist) {
       throw new NotFoundException(`User not found`);
     }
     // calculate balance and income
-    const { balance, notFixedIncome } =
+    const { balance, notFixedIncome, fiat } =
       await this.coinsService.calculateCryptoBalance(isUserExist.id);
     //return data
     return {
       ...isUserExist,
-      balance: balance + isUserExist.fiat,
+      balance: balance + fiat,
+      fiat,
       notFixedIncome,
       totalIncome: isUserExist.fixedIncome + notFixedIncome,
     };
@@ -117,11 +131,17 @@ export class UserService {
   async getUserByParam(
     where: Partial<Prisma.UserWhereUniqueInput>,
   ): Promise<User | null> {
+    if (where.email) {
+      where.email = this.validateEmail(where.email);
+    }
     return this.prisma.user.findUnique({ where });
   }
 
   // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async updateUser(data: Prisma.UserUpdateInput, email: string): Promise<User> {
+    if (data.email) {
+      data.email = this.validateEmail(data.email as string);
+    }
     const isUserExist = await this.getUserByParam({ email });
     if (!isUserExist) {
       throw new NotFoundException(`User with email ${email} not found`);
@@ -138,5 +158,9 @@ export class UserService {
     }, invested);
 
     return invested;
+  }
+
+  validateEmail(email: string) {
+    return email.toLowerCase().trim();
   }
 }

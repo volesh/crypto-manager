@@ -16,7 +16,6 @@ model User {
   email         String         @unique
   password      String
   fixedIncome   Float          @default(0)
-  fiat          Float          @default(0)
   invested      Float          @default(0)
   withdraw      Float          @default(0)
   isInitialized Boolean        @default(false)
@@ -28,15 +27,19 @@ model User {
 }
 
 model Transactions {
-  id         String   @id @default(uuid())
-  createdAt  DateTime @default(now())
-  fromCount  Float
-  toCount    Float
-  income     Float?
-  fromCoinId String
-  toCoinId   String
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String
+  id             String   @id @default(uuid())
+  fromCount      Float
+  toCount        Float
+  income         Float?
+  price_per_coin Float?
+  fromCoin       Coins    @relation(name: "fromCoinRelation", fields: [fromCoinId], references: [id])
+  fromCoinId     String
+  toCoin         Coins    @relation(name: "toCoinRelation", fields: [toCoinId], references: [id])
+  toCoinId       String
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  purchse_price  Float    @default(0)
+  createdAt      DateTime @default(now())
 }
 
 model Coins {
@@ -46,8 +49,11 @@ model Coins {
   symbol     String
   amount     Float
   img        String
+  isFiat     Boolean
   spendMoney Float
   avgPrice   Float
+  fromTransactions  Transactions[] @relation("fromCoinRelation")
+  toTransactions    Transactions[] @relation("toCoinRelation")
   user       User   @relation(fields: [userId], references: [id])
   userId     String
 }

@@ -31,6 +31,8 @@ export class AuthService {
 
   // Login !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async login(data: LoginDto): Promise<LoginResponseI> {
+    data.email = this.userService.validateEmail(data.email);
+    data.password = data.password.trim();
     const user = await this.userService.getFullUserInfo({ email: data.email });
     if (!user) {
       throw new NotFoundException(`User with email "${data.email}" not Found`);
@@ -69,7 +71,10 @@ export class AuthService {
 
   // Frogot passwoord !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async forgotPass(email: string): Promise<{ status: string }> {
-    const user = await this.userService.getUserByParam({ email });
+    const validatedEmail = this.userService.validateEmail(email);
+    const user = await this.userService.getUserByParam({
+      email: validatedEmail,
+    });
     if (!user) {
       throw new NotFoundException(`User woth email "${email}" not found`);
     }
@@ -86,7 +91,7 @@ export class AuthService {
       data: {
         value: random,
         type: TokensTypeEnum.ForgotPass,
-        userEmail: email,
+        userEmail: validatedEmail,
       },
     });
     return { status: 'Email sended' };
@@ -97,6 +102,7 @@ export class AuthService {
     newPassword,
     ...rest
   }: ChangePassDto): Promise<StringresponseI> {
+    rest.email = this.userService.validateEmail(rest.email);
     await this.isCodeValid(rest, TokensTypeEnum.ForgotPass);
     const hashedPassword = await PasswordHelper.hashPassword(newPassword);
     await this.userService.updateUser({ password: hashedPassword }, rest.email);
@@ -116,6 +122,7 @@ export class AuthService {
     data: { email: string; code: number },
     type: TokensTypeEnum,
   ): Promise<boolean> {
+    data.email = this.userService.validateEmail(data.email);
     const token = await this.prisma.actionTokens.findFirst({
       where: { userEmail: data.email, value: data.code, type },
     });

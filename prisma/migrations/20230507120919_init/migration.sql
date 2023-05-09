@@ -5,7 +5,6 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "fixedIncome" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "fiat" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isInitialized" BOOLEAN NOT NULL DEFAULT false,
@@ -16,13 +15,14 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Transactions" (
     "id" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "fromCount" DOUBLE PRECISION NOT NULL,
     "toCount" DOUBLE PRECISION NOT NULL,
     "income" DOUBLE PRECISION,
+    "price_per_coin" DOUBLE PRECISION,
     "fromCoinId" TEXT NOT NULL,
     "toCoinId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Transactions_pkey" PRIMARY KEY ("id")
 );
@@ -35,6 +35,7 @@ CREATE TABLE "Coins" (
     "symbol" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "img" TEXT NOT NULL,
+    "isFiat" BOOLEAN NOT NULL,
     "spendMoney" DOUBLE PRECISION NOT NULL,
     "avgPrice" DOUBLE PRECISION NOT NULL,
     "userId" TEXT NOT NULL,
@@ -88,6 +89,12 @@ CREATE TABLE "ActionTokens" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- AddForeignKey
+ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_fromCoinId_fkey" FOREIGN KEY ("fromCoinId") REFERENCES "Coins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_toCoinId_fkey" FOREIGN KEY ("toCoinId") REFERENCES "Coins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
