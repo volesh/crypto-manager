@@ -1,3 +1,4 @@
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import {
   Injectable,
   BadRequestException,
@@ -5,14 +6,45 @@ import {
 } from '@nestjs/common';
 import { CreateCoinDto } from './dto/create.coin.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Coins } from '@prisma/client';
+import { Coins, Prisma } from '@prisma/client';
 import { CoingeckoService } from 'src/coingecko/coingecko.service';
 import { FiatEnum } from 'src/general/enums/fiat.enam';
+import { OrderEnum } from 'src/general/enums/order.enum';
 
 @Injectable()
 export class CoinsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Get Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getCoins(
+    userId: string,
+    page: number,
+    perPage: number,
+    orderBy: string,
+    orderDirecrion: OrderEnum,
+    coinId: string,
+  ): Promise<PaginationResponseI<Coins>> {
+    const skip = (page - 1) * perPage;
+    const where = this.generateWhere(userId, coinId);
+    const totalTransactions = await this.prisma.coins.count({
+      where,
+    });
+    const totalPages = Math.ceil(totalTransactions / perPage);
+    const coins = await this.prisma.coins.findMany({
+      where,
+      skip,
+      take: perPage,
+      orderBy: { [orderBy]: orderDirecrion },
+    });
+    return {
+      page,
+      totalPages,
+      perPage,
+      data: coins,
+    };
+  }
+
+  // Create Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createCoin(coin: CreateCoinDto, userId: string): Promise<Coins> {
     const isUserExist = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -107,5 +139,18 @@ export class CoinsService {
         user: { connect: { id: userId } },
       },
     });
+  }
+
+  // Generate Where !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  generateWhere(userId: string, coinId: string): Prisma.CoinsWhereInput {
+    const whereArr = [];
+    whereArr.push({ userId });
+    if (coinId) {
+      whereArr.push({ coinId });
+    }
+    if (whereArr.length > 1) {
+      return { AND: whereArr };
+    }
+    return { userId };
   }
 }

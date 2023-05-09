@@ -1,3 +1,4 @@
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import {
   Body,
   Controller,
@@ -14,7 +15,7 @@ import { CreateTransactionDto } from './dto/create.transaction.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { Transactions } from '@prisma/client';
-import { TransactionsResponseI } from 'src/general/interfaces/transactions/transactions.response.interface';
+import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
 
 @Controller('transactions')
 export class TransactionsController {
@@ -30,7 +31,8 @@ export class TransactionsController {
     @Query('order_by') orderBy: string = 'createdAt',
     @Query('date') date?: string,
     @Query('coinId') coinId?: string,
-  ): Promise<TransactionsResponseI> {
+    @Query('status') status?: TransactionStatusEnum,
+  ): Promise<PaginationResponseI<Transactions>> {
     return this.transactionsService.getTransactions(
       request.user.id,
       +page,
@@ -38,6 +40,7 @@ export class TransactionsController {
       orderBy,
       date,
       coinId,
+      status,
     );
   }
 
