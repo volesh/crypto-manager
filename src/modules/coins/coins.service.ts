@@ -39,10 +39,12 @@ export class CoinsService {
     });
   }
 
+  // Get Coin By Id !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getCoinByCoinId(coinId: string, userId: string): Promise<Coins> {
     return this.prisma.coins.findFirst({ where: { coinId, userId } });
   }
 
+  // Update Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async updateCoin(
     amount: number,
     avgPrice: number,
@@ -55,6 +57,7 @@ export class CoinsService {
     });
   }
 
+  // Calculate Crypto balance !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async calculateCryptoBalance(userId: string) {
     let balance = 0;
     let notFixedIncome = 0;
@@ -84,10 +87,12 @@ export class CoinsService {
     return { balance, notFixedIncome, fiat };
   }
 
+  // Get UserCoins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getUsersCoins(userId: string): Promise<Coins[]> {
     return this.prisma.coins.findMany({ where: { userId } });
   }
 
+  // Create fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createFiat(count: number, userId: string): Promise<Coins> {
     return this.prisma.coins.create({
       data: {
