@@ -1,4 +1,10 @@
-import { Prisma, PrismaClient, Transactions, User } from '@prisma/client';
+import {
+  Coins,
+  Prisma,
+  PrismaClient,
+  Transactions,
+  User,
+} from '@prisma/client';
 import { CreateTransactionDto } from './dto/create.transaction.dto';
 import {
   BadRequestException,
@@ -48,6 +54,37 @@ export class TransactionsService {
       perPage,
       totalPages,
     };
+  }
+
+  // Delete Transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async deleteTransaction(id: string): Promise<Transactions> {
+    const transactionForDelete = await this.prisma.transactions.findUnique({
+      where: { id },
+      include: { fromCoin: true, toCoin: true, user: true },
+    });
+    if (!transactionForDelete) {
+      throw new NotFoundException(`Transaction with id: ${id} not found`);
+    }
+    if (transactionForDelete.toCoin.amount < transactionForDelete.toCount) {
+      throw new BadRequestException(
+        `You can't delete this transactions because ypu will have negative ${transactionForDelete.toCoin.coinName} balance`,
+      );
+    }
+    if (transactionForDelete.income) {
+      const fixedIncome =
+        transactionForDelete.user.fixedIncome - transactionForDelete.income;
+      await this.userService.updateUser(
+        { fixedIncome },
+        transactionForDelete.user.email,
+      );
+    }
+    // Change from coin
+    await this.updateCoinsAfterDelete(
+      transactionForDelete.fromCoin,
+      transactionForDelete.toCoin,
+      transactionForDelete,
+    );
+    return this.prisma.transactions.delete({ where: { id } });
   }
 
   // Create Transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -141,6 +178,7 @@ export class TransactionsService {
       toCoin: { connect: { id: createdCoinId } },
       price_per_coin: usd / coin,
       user: { connect: { id: userId } },
+      purchse_price: usd,
     });
   }
 
@@ -192,6 +230,7 @@ export class TransactionsService {
       price_per_coin: usd / coin,
       income,
       user: { connect: { id: user.id } },
+      purchse_price: fromCoin.amount * fromCoin.avgPrice,
     });
   }
 
@@ -244,15 +283,18 @@ export class TransactionsService {
       toCount: transaction.toCount,
       toCoin: { connect: { id: toCoinId } },
       user: { connect: { id: userId } },
+      purchse_price: fromCoin.amount * fromCoin.avgPrice,
     });
   }
 
+  // Save transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async saveTransaction(
     data: Prisma.TransactionsCreateInput,
   ): Promise<Transactions> {
     return this.prisma.transactions.create({ data });
   }
 
+  // Generate Where !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   generateWhere(date: string, userId: string, coinId): Prisma.UserWhereInput {
     const whereArr = [];
     if (date) {
@@ -276,5 +318,32 @@ export class TransactionsService {
       return { AND: whereArr };
     }
     return whereArr[0];
+  }
+
+  // Update Coins After Delete !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async updateCoinsAfterDelete(
+    fromCoin: Coins,
+    toCoin: Coins,
+    transaction: Transactions,
+  ) {
+    const fromAmount = fromCoin.amount + transaction.fromCount;
+    const fromSpendMoney = fromCoin.spendMoney + transaction.purchse_price;
+    const fromAvgPrice = fromSpendMoney / fromAmount;
+    const toAmount = toCoin.amount - transaction.toCount;
+    const toSpendMoney = toCoin.spendMoney - transaction.purchse_price;
+    const toAvgPrice = toSpendMoney / toAmount;
+
+    await this.coinsService.updateCoin(
+      fromAmount,
+      fromAvgPrice,
+      fromSpendMoney,
+      fromCoin.id,
+    );
+    await this.coinsService.updateCoin(
+      toAmount,
+      toAvgPrice,
+      toSpendMoney,
+      toCoin.id,
+    );
   }
 }

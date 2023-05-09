@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Query,
   Req,
@@ -50,5 +52,12 @@ export class TransactionsController {
       transaction,
       request.user.id,
     );
+  }
+
+  // Delete Transactions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('/:id')
+  deleteTransaction(@Param('id') id: string) {
+    return this.transactionsService.deleteTransaction(id);
   }
 }
