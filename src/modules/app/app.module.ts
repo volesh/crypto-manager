@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma.service';
 import { TokensSchedule } from 'src/cronJobs/tokens.cronjobs';
 import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
 import { CoinsService } from '../coins/coins.service';
+import { WalletValuesModule } from '../wallet-values/wallet-values.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CoinsService } from '../coins/coins.service';
     AuthModule,
     TransactionsModule,
     CoinsModule,
+    WalletValuesModule,
     ScheduleModule.forRoot(),
     MailerModule.forRoot({
       transport: {

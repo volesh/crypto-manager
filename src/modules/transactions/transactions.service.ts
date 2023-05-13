@@ -304,6 +304,9 @@ export class TransactionsService {
     if (date) {
       const fromDate = new Date(`${date}T00:00:00.000Z`);
       const toDate = new Date(fromDate.getTime() + 24 * 60 * 60 * 1000);
+      if (isNaN(fromDate.getDate())) {
+        throw new BadRequestException('Date should be in yyyy-mm-dd fromat');
+      }
       const whereDate = {
         createdAt: { gte: fromDate, lte: toDate },
       };
