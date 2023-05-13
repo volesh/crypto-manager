@@ -38,11 +38,11 @@ export class DepositsService {
         `In your balance less then ${createDepositDto.amount}`,
       );
     }
+    await this.updateData(createDepositDto, user, fiat);
     const data: Prisma.DepositsCreateInput = {
       ...createDepositDto,
       user: { connect: { id } },
     };
-
     return this.prisma.deposits.create({ data });
   }
 
