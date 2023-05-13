@@ -5,6 +5,11 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { envConfig } from 'src/general/configs/envConfig';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { CoinsModule } from '../coins/coins.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { PrismaService } from 'src/prisma.service';
+import { TokensSchedule } from 'src/cronJobs/tokens.cronjobs';
+import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
+import { CoinsService } from '../coins/coins.service';
 
 @Module({
   imports: [
@@ -12,6 +17,7 @@ import { CoinsModule } from '../coins/coins.module';
     AuthModule,
     TransactionsModule,
     CoinsModule,
+    ScheduleModule.forRoot(),
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
@@ -22,6 +28,6 @@ import { CoinsModule } from '../coins/coins.module';
       },
     }),
   ],
-  providers: [],
+  providers: [TokensSchedule, PrismaService, WalletSchedule, CoinsService],
 })
 export class AppModule {}
