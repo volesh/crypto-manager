@@ -16,6 +16,11 @@ enum Status {
   transfer
 }
 
+enum DepositStatus {
+  deposit
+  withdraw
+}
+
 model User {
   id            String         @id @default(uuid())
   name          String
@@ -87,7 +92,7 @@ model Deposits {
   createdAt DateTime @default(now())
   amount    Float
   currency  String   @default("usd")
-  status    Boolean
+  status    DepositStatus
   user      User     @relation(fields: [userId], references: [id])
   userId    String
 }

@@ -133,7 +133,7 @@ export class CoinsService {
         isFiat: true,
         symbol: '$',
         img: '',
-        coinName: 'Usd',
+        coinName: 'USD',
         coinId: FiatEnum.Dolar,
         avgPrice: 1,
         user: { connect: { id: userId } },
