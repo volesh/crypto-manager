@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  buy
+  sell
+  transfer
+}
+
+enum DepositStatus {
+  deposit
+  withdraw
+}
+
+model User {
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  fixedIncome   Float          @default(0)
+  invested      Float          @default(0)
+  withdraw      Float          @default(0)
+  isInitialized Boolean        @default(false)
+  transactions  Transactions[]
+  coins         Coins[]
+  walletValues  WalletValues[]
+  tokens        Tokens[]
+  deposits      Deposits[]
+}
+
+model Transactions {
+  id             String   @id @default(uuid())
+  fromCount      Float
+  toCount        Float
+  income         Float?
+  price_per_coin Float?
+  fromCoin       Coins    @relation(name: "fromCoinRelation", fields: [fromCoinId], references: [id])
+  fromCoinId     String
+  toCoin         Coins    @relation(name: "toCoinRelation", fields: [toCoinId], references: [id])
+  toCoinId       String
+  user           User     @relation(fields: [userId], references: [id])
+  userId         String
+  purchse_price  Float    @default(0)
+  status         Status   
+  createdAt      DateTime @default(now())
+}
+
+model Coins {
+  id         String @id @default(uuid())
+  coinId     String
+  coinName   String
+  symbol     String
+  amount     Float
+  img        String
+  isFiat     Boolean
+  spendMoney Float
+  avgPrice   Float
+  fromTransactions  Transactions[] @relation("fromCoinRelation")
+  toTransactions    Transactions[] @relation("toCoinRelation")
+  user       User   @relation(fields: [userId], references: [id])
+  userId     String
+}
+
+model WalletValues {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  amount    Float
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model Tokens {
+  id           String   @id @default(uuid())
+  accessToken  String
+  refreshToken String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+}
+
+model Deposits {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  amount    Float
+  currency  String   @default("usd")
+  status    DepositStatus
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+}
+
+model ActionTokens {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  value     Int
+  type      String
+  userEmail String
+}
