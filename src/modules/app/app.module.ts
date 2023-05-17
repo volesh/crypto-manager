@@ -11,6 +11,7 @@ import { TokensSchedule } from 'src/cronJobs/tokens.cronjobs';
 import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
 import { CoinsService } from '../coins/coins.service';
 import { WalletValuesModule } from '../wallet-values/wallet-values.module';
+import { DepositsModule } from '../deposits/deposits.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { WalletValuesModule } from '../wallet-values/wallet-values.module';
     TransactionsModule,
     CoinsModule,
     WalletValuesModule,
+    DepositsModule,
     ScheduleModule.forRoot(),
     MailerModule.forRoot({
       transport: {

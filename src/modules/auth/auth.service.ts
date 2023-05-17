@@ -70,7 +70,7 @@ export class AuthService {
   }
 
   // Frogot passwoord !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async forgotPass(email: string): Promise<{ status: string }> {
+  async forgotPass(email: string): Promise<StringresponseI> {
     const validatedEmail = this.userService.validateEmail(email);
     const user = await this.userService.getUserByParam({
       email: validatedEmail,

@@ -23,5 +23,5 @@ export class GetAllWalletValues {
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
   })
-  suerId: string;
+  userId: string;
 }

@@ -48,4 +48,22 @@ export class UserResponse {
     example: false,
   })
   isInitialized: boolean;
+
+  @ApiProperty({
+    type: Number,
+    example: 2000,
+  })
+  balance: number;
+
+  @ApiProperty({
+    type: Number,
+    example: 2400,
+  })
+  notFixedIncome: number;
+
+  @ApiProperty({
+    type: Number,
+    example: 2700,
+  })
+  totalIncome: number;
 }

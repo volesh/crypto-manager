@@ -11,6 +11,7 @@ import { FiatEnum } from 'src/general/enums/fiat.enam';
 import { UserService } from '../user/user.service';
 import { CoinsService } from '../coins/coins.service';
 import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
+import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 
 @Injectable()
 export class TransactionsService {
@@ -183,7 +184,7 @@ export class TransactionsService {
   async sellCoin(
     usd: number,
     coin: number,
-    user: User,
+    user: GetUserI,
     coinId: string,
   ): Promise<Transactions> {
     const fromCoin = await this.coinsService.getCoinByCoinId(coinId, user.id);
