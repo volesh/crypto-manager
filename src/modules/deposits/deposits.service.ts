@@ -29,7 +29,7 @@ export class DepositsService {
       throw new NotFoundException(`User with id: ${id} not found`);
     }
     let fiat = await this.prisma.coins.findFirst({
-      where: { coinId: FiatEnum.Dolar },
+      where: { coinId: FiatEnum.Dolar, userId: user.id },
     });
     if (!fiat && createDepositDto.status) {
       fiat = await this.coinsService.createFiat(createDepositDto.amount, id);
@@ -78,7 +78,7 @@ export class DepositsService {
   async remove(id: string): Promise<Deposits> {
     const isExist = await this.prisma.deposits.findUnique({ where: { id } });
     if (!isExist) {
-      throw new NotFoundException('Not found');
+      throw new NotFoundException(`Deposit with id ${id} not found`);
     }
     return this.prisma.deposits.delete({ where: { id } });
   }
@@ -110,6 +110,7 @@ export class DepositsService {
         fiat.spendMoney + deposit.amount,
         fiat.id,
       );
+
       promisesArr.push(userUpdate);
       promisesArr.push(fiatUpdate);
     } else {

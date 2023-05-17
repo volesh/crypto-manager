@@ -339,10 +339,10 @@ export class TransactionsService {
   ) {
     const fromAmount = fromCoin.amount + transaction.fromCount;
     const fromSpendMoney = fromCoin.spendMoney + transaction.purchse_price;
-    const fromAvgPrice = fromSpendMoney / fromAmount;
+    const fromAvgPrice = fromAmount ? fromSpendMoney / fromAmount : 0;
     const toAmount = toCoin.amount - transaction.toCount;
     const toSpendMoney = toCoin.spendMoney - transaction.purchse_price;
-    const toAvgPrice = toSpendMoney / toAmount;
+    const toAvgPrice = toAmount ? toSpendMoney / toAmount : 0;
 
     await this.coinsService.updateCoin(
       fromAmount,
