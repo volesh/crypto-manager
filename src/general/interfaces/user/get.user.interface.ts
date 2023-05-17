@@ -6,7 +6,9 @@ export interface GetUserI {
   fiat: number;
   invested: number;
   withdraw: number;
-  balance?: number;
-  notFixedIncome?: number;
-  totalIncome?: number;
+  balance: number;
+  isInitialized: boolean;
+  notFixedIncome: number;
+  totalIncome: number;
+  password?: string;
 }

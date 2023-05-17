@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/crypto?schema=public
+    ports:
+      - '3000:3000'
+    volumes:
+      - /api/node_modules
+    depends_on:
+      - postgres
+    command: npm run start:prod
+
+  postgres:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=crypto
+    ports:
+      - '5432:5432'
+    volumes:
+      - data_base:/var/lib/postgresql/data
+
+  postgres_admin:
+    image: dpage/pgadmin4
+    depends_on:
+      - postgres
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+
+volumes:
+  data_base:

@@ -12,7 +12,6 @@ async function bootstrap() {
     .setTitle('Crypto Manager')
     .setDescription('Crypro Manager API Documentation')
     .setVersion('1.0.0')
-    .addTag('crypto')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/doc', app, document);

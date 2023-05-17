@@ -24,7 +24,7 @@ export class UserService {
   ) {}
 
   // Get One User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getOneUser(id: string) {
+  async getOneUser(id: string): Promise<GetUserI> {
     const user = await this.getFullUserInfo({ id });
     return createUserPresenter(user);
   }
@@ -105,7 +105,7 @@ export class UserService {
   }
 
   // Get full User Info !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getFullUserInfo(where: Prisma.UserWhereUniqueInput) {
+  async getFullUserInfo(where: Prisma.UserWhereUniqueInput): Promise<GetUserI> {
     if (where.email) {
       where.email = this.validateEmail(where.email);
     }
@@ -160,7 +160,7 @@ export class UserService {
     return invested;
   }
 
-  validateEmail(email: string) {
+  validateEmail(email: string): string {
     return email.toLowerCase().trim();
   }
 }

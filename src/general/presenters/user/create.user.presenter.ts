@@ -1,7 +1,11 @@
 import { User } from '@prisma/client';
 import { CreatedUserI } from 'src/general/interfaces/user/created.user.interface';
 
-export const createUserPresenter = (user: User): CreatedUserI => {
+type AnyObjectType = Record<string, any>;
+
+export const createUserPresenter = <T extends AnyObjectType>(
+  user: T,
+): Omit<T, 'password'> => {
   const { password, ...rest } = user;
 
   return rest;
