@@ -60,6 +60,7 @@ export class DepositsController {
     @Query('page') page: number = 1,
     @Query('per_page') perPage: number = 10,
     @Query('status') status?: DepositsEnum,
+    @Query('order_by') orderBy: string = 'createdAt',
     @Query('order_direcrion') orderDirecrion: OrderEnum = OrderEnum.DESC,
   ): Promise<PaginationResponseI<Deposits>> {
     return this.depositsService.findAll(
@@ -68,6 +69,7 @@ export class DepositsController {
       +perPage,
       status,
       orderDirecrion,
+      orderBy,
     );
   }
 

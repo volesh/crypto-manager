@@ -142,7 +142,7 @@ export class TransactionsService {
       const { amount, spendMoney } = selectedCoin;
       const newAmount = amount + coin;
       const newSpendMoney = spendMoney + usd;
-      const newAvgPrice = +(newSpendMoney / newAmount).toFixed(9);
+      const newAvgPrice = +(newSpendMoney / newAmount);
       const updatedCoin = await this.coinsService.updateCoin(
         newAmount,
         newAvgPrice,

@@ -11,6 +11,7 @@ import { PaginationResponseI } from 'src/general/interfaces/pagination/paginatio
 import { DepositsEnum } from 'src/general/enums/deposits.enum';
 import { OrderEnum } from 'src/general/enums/order.enum';
 import { CoinsService } from '../coins/coins.service';
+import { isEAN } from 'class-validator';
 
 @Injectable()
 export class DepositsService {
@@ -28,12 +29,18 @@ export class DepositsService {
     if (!user) {
       throw new NotFoundException(`User with id: ${id} not found`);
     }
+    if (!user.isInitialized) {
+      throw new BadRequestException('User is not initialized');
+    }
     let fiat = await this.prisma.coins.findFirst({
       where: { coinId: FiatEnum.Dolar, userId: user.id },
     });
-    if (!fiat && createDepositDto.status) {
+    if (!fiat && createDepositDto.status === DepositsEnum.Buy) {
       fiat = await this.coinsService.createFiat(createDepositDto.amount, id);
-    } else if (!fiat && createDepositDto.status) {
+    } else if (
+      (!fiat || fiat.amount < createDepositDto.amount) &&
+      createDepositDto.status === DepositsEnum.Sell
+    ) {
       throw new BadRequestException(
         `In your balance less then ${createDepositDto.amount}`,
       );
@@ -53,6 +60,7 @@ export class DepositsService {
     perPage: number,
     status: DepositsEnum,
     orderDirecrion: OrderEnum,
+    orderBy: string,
   ): Promise<PaginationResponseI<Deposits>> {
     const where = this.generateWhere(userId, status);
     const skip = (page - 1) * perPage;
@@ -64,7 +72,7 @@ export class DepositsService {
       where,
       skip,
       take: perPage,
-      orderBy: { amount: orderDirecrion },
+      orderBy: { [orderBy]: orderDirecrion },
     });
     return {
       page,
@@ -76,9 +84,48 @@ export class DepositsService {
 
   // Delete deposit !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async remove(id: string): Promise<Deposits> {
-    const isExist = await this.prisma.deposits.findUnique({ where: { id } });
-    if (!isExist) {
+    const deposit = await this.prisma.deposits.findUnique({
+      where: { id },
+      include: { user: true },
+    });
+    if (!deposit) {
       throw new NotFoundException(`Deposit with id ${id} not found`);
+    }
+    const fiat = await this.coinsService.getCoinByCoinId('usd', deposit.userId);
+    if (!fiat) {
+      throw new NotFoundException('Coin not found');
+    }
+    if (deposit.status === DepositsEnum.Buy) {
+      if (fiat.amount < deposit.amount) {
+        throw new BadRequestException(
+          `You can't delete this deposit bacause in your balanse less then deposit amount`,
+        );
+      } else {
+        await this.coinsService.updateCoin(
+          fiat.amount - deposit.amount,
+          1,
+          fiat.spendMoney - deposit.amount,
+          fiat.id,
+        );
+        await this.prisma.user.update({
+          where: { id: deposit.userId },
+          data: { invested: deposit.user.invested - deposit.amount },
+        });
+      }
+    } else {
+      await this.coinsService.updateCoin(
+        fiat.amount + deposit.amount,
+        1,
+        fiat.spendMoney + deposit.amount,
+        fiat.id,
+      );
+      await this.prisma.user.update({
+        where: { id: deposit.userId },
+        data: {
+          invested: deposit.user.invested + deposit.amount,
+          withdraw: deposit.user.withdraw - deposit.amount,
+        },
+      });
     }
     return this.prisma.deposits.delete({ where: { id } });
   }
@@ -116,7 +163,9 @@ export class DepositsService {
     } else {
       const userUpdate = this.prisma.user.update({
         where: { id: user.id },
-        data: { invested: user.invested - deposit.amount },
+        data: {
+          withdraw: user.withdraw + deposit.amount,
+        },
       });
       const fiatUpdate = this.coinsService.updateCoin(
         fiat.amount - deposit.amount,
