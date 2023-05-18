@@ -82,7 +82,7 @@ export class AuthService {
 
     await this.mailerService.sendMail({
       from: 'No Reply',
-      to: 'volesh2@gmail.com',
+      to: email,
       subject: 'Crypto Manager',
       html: `<div>Verefication code <b>${random}</b></div>`,
     });
