@@ -1,3 +1,10 @@
+import {
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+} from '@nestjs/swagger';
 import { UserService } from './user.service';
 import {
   Body,
@@ -14,25 +21,37 @@ import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { AuthGuard } from '@nestjs/passport';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
+import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
+import { LoginResponse } from 'src/general/swagger.responses/auth.responses/login.response';
+import { UserResponse } from 'src/general/swagger.responses/user.responses/user.response';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   // Get User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @ApiBearerAuth()
+  @ApiResponse({ type: UserResponse })
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  getUser(@Req() request: IRequest) {
+  getUser(@Req() request: IRequest): Promise<GetUserI> {
     return this.userService.getOneUser(request.user.id);
   }
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @ApiCreatedResponse({ type: LoginResponse })
+  @ApiResponse({ type: ErrorResponse })
+  @ApiBody({ type: CreateUserDto })
   @Post()
   createUser(@Body() user: CreateUserDto): Promise<LoginResponseI> {
     return this.userService.createUser(user);
   }
 
   // Init User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @ApiBody({ type: InitUserDto })
+  @ApiResponse({ type: UserResponse })
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/init')
   initUser(

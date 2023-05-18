@@ -11,6 +11,7 @@ import { FiatEnum } from 'src/general/enums/fiat.enam';
 import { UserService } from '../user/user.service';
 import { CoinsService } from '../coins/coins.service';
 import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
+import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 
 @Injectable()
 export class TransactionsService {
@@ -141,7 +142,7 @@ export class TransactionsService {
       const { amount, spendMoney } = selectedCoin;
       const newAmount = amount + coin;
       const newSpendMoney = spendMoney + usd;
-      const newAvgPrice = +(newSpendMoney / newAmount).toFixed(9);
+      const newAvgPrice = +(newSpendMoney / newAmount);
       const updatedCoin = await this.coinsService.updateCoin(
         newAmount,
         newAvgPrice,
@@ -183,7 +184,7 @@ export class TransactionsService {
   async sellCoin(
     usd: number,
     coin: number,
-    user: User,
+    user: GetUserI,
     coinId: string,
   ): Promise<Transactions> {
     const fromCoin = await this.coinsService.getCoinByCoinId(coinId, user.id);
@@ -338,10 +339,10 @@ export class TransactionsService {
   ) {
     const fromAmount = fromCoin.amount + transaction.fromCount;
     const fromSpendMoney = fromCoin.spendMoney + transaction.purchse_price;
-    const fromAvgPrice = fromSpendMoney / fromAmount;
+    const fromAvgPrice = fromAmount ? fromSpendMoney / fromAmount : 0;
     const toAmount = toCoin.amount - transaction.toCount;
     const toSpendMoney = toCoin.spendMoney - transaction.purchse_price;
-    const toAvgPrice = toSpendMoney / toAmount;
+    const toAvgPrice = toAmount ? toSpendMoney / toAmount : 0;
 
     await this.coinsService.updateCoin(
       fromAmount,

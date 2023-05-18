@@ -70,7 +70,7 @@ export class AuthService {
   }
 
   // Frogot passwoord !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async forgotPass(email: string): Promise<{ status: string }> {
+  async forgotPass(email: string): Promise<StringresponseI> {
     const validatedEmail = this.userService.validateEmail(email);
     const user = await this.userService.getUserByParam({
       email: validatedEmail,
@@ -82,7 +82,7 @@ export class AuthService {
 
     await this.mailerService.sendMail({
       from: 'No Reply',
-      to: 'volesh2@gmail.com',
+      to: email,
       subject: 'Crypto Manager',
       html: `<div>Verefication code <b>${random}</b></div>`,
     });

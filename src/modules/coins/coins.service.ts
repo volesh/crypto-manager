@@ -114,8 +114,8 @@ export class CoinsService {
       balance += market.current_price * coin.amount;
       notFixedIncome += market.current_price * coin.amount - coin.spendMoney;
     });
-    balance = +balance.toFixed(3);
-    notFixedIncome = +notFixedIncome.toFixed(3);
+    balance = +balance;
+    notFixedIncome = +notFixedIncome;
     return { balance, notFixedIncome, fiat };
   }
 
@@ -132,7 +132,7 @@ export class CoinsService {
         spendMoney: count,
         isFiat: true,
         symbol: '$',
-        img: '',
+        img: 'https://www.google.com/search?q=dollar%20symbol&tbm=isch&tbs=ic:trans&rlz=1C1SQJL_ukUA935UA935&hl=uk&sa=X&ved=0CAMQpwVqFwoTCIDhrvCv__4CFQAAAAAdAAAAABAD&biw=1519&bih=714#imgrc=ddOoeTAN9jAalM',
         coinName: 'USD',
         coinId: FiatEnum.Dolar,
         avgPrice: 1,
