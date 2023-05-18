@@ -10,7 +10,6 @@ COPY package*.json .
 COPY prisma .
 
 RUN npm i
-RUN npm rebuild bcrypt --build-from-source
 
 COPY . .
 
