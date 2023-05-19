@@ -6,8 +6,8 @@ services:
       dockerfile: Dockerfile
       context: .
     restart: always
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/crypto?schema=public
+    env_file:
+      - .env
     ports:
       - '3000:3000'
     volumes:
