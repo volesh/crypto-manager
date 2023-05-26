@@ -1,3 +1,9 @@
+-- CreateEnum
+CREATE TYPE "Status" AS ENUM ('buy', 'sell', 'transfer');
+
+-- CreateEnum
+CREATE TYPE "DepositStatus" AS ENUM ('deposit', 'withdraw');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -22,6 +28,8 @@ CREATE TABLE "Transactions" (
     "fromCoinId" TEXT NOT NULL,
     "toCoinId" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
+    "purchse_price" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "status" "Status" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Transactions_pkey" PRIMARY KEY ("id")
@@ -70,7 +78,7 @@ CREATE TABLE "Deposits" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "amount" DOUBLE PRECISION NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'usd',
-    "status" BOOLEAN NOT NULL,
+    "status" "DepositStatus" NOT NULL,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "Deposits_pkey" PRIMARY KEY ("id")
@@ -87,8 +95,24 @@ CREATE TABLE "ActionTokens" (
     CONSTRAINT "ActionTokens_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Fiat" (
+    "id" TEXT NOT NULL,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "code" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "symbol" TEXT NOT NULL,
+    "img" TEXT NOT NULL,
+    "price" INTEGER NOT NULL,
+
+    CONSTRAINT "Fiat_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Fiat_code_key" ON "Fiat"("code");
 
 -- AddForeignKey
 ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_fromCoinId_fkey" FOREIGN KEY ("fromCoinId") REFERENCES "Coins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -31,13 +31,12 @@ export class CoinsController {
     @Query('order_direcrion') orderDirecrion: OrderEnum = OrderEnum.DESC,
     @Query('coinId') coinId?: string,
   ): Promise<PaginationResponseI<Coins>> {
-    return this.coinsService.getCoins(
-      user.id,
-      +page,
-      +perPage,
-      orderBy,
-      orderDirecrion,
-      coinId,
-    );
+    return this.coinsService.getCoins(user.id, +page, +perPage, orderBy, orderDirecrion, coinId);
+  }
+
+  // Get Fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @Get('/fiat')
+  getFiatList() {
+    return this.coinsService.getFiatList();
   }
 }

@@ -1,9 +1,5 @@
 import { TokensTypeEnum } from '../../general/enums/tokens.types.enum';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma } from '@prisma/client';
@@ -37,10 +33,7 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException(`User with email "${data.email}" not Found`);
     }
-    const isPasswordSame = await PasswordHelper.comparePassword(
-      user.password,
-      data.password,
-    );
+    const isPasswordSame = await PasswordHelper.comparePassword(user.password, data.password);
     if (!isPasswordSame) {
       throw new BadRequestException('Wrong password');
     }
@@ -98,10 +91,7 @@ export class AuthService {
   }
 
   // Change Password !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async changePassword({
-    newPassword,
-    ...rest
-  }: ChangePassDto): Promise<StringresponseI> {
+  async changePassword({ newPassword, ...rest }: ChangePassDto): Promise<StringresponseI> {
     rest.email = this.userService.validateEmail(rest.email);
     await this.isCodeValid(rest, TokensTypeEnum.ForgotPass);
     const hashedPassword = await PasswordHelper.hashPassword(newPassword);
@@ -118,10 +108,7 @@ export class AuthService {
   }
 
   // Is code valid !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async isCodeValid(
-    data: { email: string; code: number },
-    type: TokensTypeEnum,
-  ): Promise<boolean> {
+  async isCodeValid(data: { email: string; code: number }, type: TokensTypeEnum): Promise<boolean> {
     data.email = this.userService.validateEmail(data.email);
     const token = await this.prisma.actionTokens.findFirst({
       where: { userEmail: data.email, value: data.code, type },

@@ -32,7 +32,7 @@ export class CreateTransactionResponse {
 
   @ApiProperty({
     type: String,
-    example: 'usd',
+    example: 'USD',
   })
   fromCoinId: string;
 

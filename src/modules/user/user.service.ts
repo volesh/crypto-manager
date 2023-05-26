@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PasswordHelper } from 'src/general/helpers/password.helper';
 import { PrismaService } from 'src/prisma.service';
@@ -36,9 +32,7 @@ export class UserService {
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
-      throw new BadRequestException(
-        `User with email "${user.email}" already exist`,
-      );
+      throw new BadRequestException(`User with email "${user.email}" already exist`);
     }
     // Hash password
     const hashedPassword = await PasswordHelper.hashPassword(user.password);
@@ -71,7 +65,7 @@ export class UserService {
       throw new BadRequestException('User already initialized');
     }
     // get invested money
-    const invested = this.calculateInvested(data);
+    const invested = await this.calculateInvested(data);
 
     //update user
     const updatedUser = await this.prisma.user.update({
@@ -85,14 +79,13 @@ export class UserService {
     }
 
     //Create usd coin
-    await this.coinsService.createFiat(fiat, isUserExist.id);
+    const promises = fiat.map((currency) => {
+      return this.coinsService.createFiat(currency, isUserExist.id);
+    });
+    await Promise.all(promises);
 
     // calculate balance and income
-    const {
-      balance,
-      notFixedIncome,
-      fiat: receivedFiat,
-    } = await this.coinsService.calculateCryptoBalance(id);
+    const { balance, notFixedIncome, fiat: receivedFiat } = await this.coinsService.calculateCryptoBalance(id);
     //return data
     const userForResponse = createUserPresenter(updatedUser);
     return {
@@ -115,8 +108,7 @@ export class UserService {
       throw new NotFoundException(`User not found`);
     }
     // calculate balance and income
-    const { balance, notFixedIncome, fiat } =
-      await this.coinsService.calculateCryptoBalance(isUserExist.id);
+    const { balance, notFixedIncome, fiat } = await this.coinsService.calculateCryptoBalance(isUserExist.id);
     //return data
     return {
       ...isUserExist,
@@ -128,9 +120,7 @@ export class UserService {
   }
 
   // Get User by params !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getUserByParam(
-    where: Partial<Prisma.UserWhereUniqueInput>,
-  ): Promise<User | null> {
+  async getUserByParam(where: Partial<Prisma.UserWhereUniqueInput>): Promise<User | null> {
     if (where.email) {
       where.email = this.validateEmail(where.email);
     }
@@ -150,8 +140,18 @@ export class UserService {
   }
 
   // Calculate invested money !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  calculateInvested(data: InitUserDto): number {
-    let invested = data.fiat;
+  async calculateInvested(data: InitUserDto): Promise<number> {
+    let invested = 0;
+    const fiatCodes = data.fiat.map((fiat) => fiat.code);
+    if (fiatCodes.length > 0) {
+      const fiats = await this.prisma.fiat.findMany({
+        where: { code: { in: fiatCodes } },
+      });
+      invested = data.fiat.reduce((accum, fiat) => {
+        const fiatPrice = fiats.find((elem) => elem.code === fiat.code);
+        return (accum += fiat.amount / fiatPrice.price);
+      }, invested);
+    }
 
     invested = data.coins.reduce((accum, coin) => {
       return (accum += coin.spendMoney);

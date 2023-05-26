@@ -5,18 +5,13 @@ import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class WalletSchedule {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly coinsService: CoinsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService, private readonly coinsService: CoinsService) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async removeExpiredTokens() {
     const users = await this.prisma.user.findMany({ select: { id: true } });
     for (let user of users) {
-      const { balance, fiat } = await this.coinsService.calculateCryptoBalance(
-        user.id,
-      );
+      const { balance, fiat } = await this.coinsService.calculateCryptoBalance(user.id);
       await this.prisma.walletValues.create({
         data: {
           amount: balance + fiat,

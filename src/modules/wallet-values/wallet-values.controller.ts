@@ -3,13 +3,7 @@ import { WalletValuesService } from './wallet-values.service';
 import { AuthGuard } from '@nestjs/passport';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
 import type { WalletValues } from '@prisma/client';
-import {
-  ApiBearerAuth,
-  ApiFoundResponse,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiFoundResponse, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetAllWalletValues } from 'src/general/swagger.responses/wallet.values.responses/get.all.response';
 import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
 

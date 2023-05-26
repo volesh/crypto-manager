@@ -16,6 +16,12 @@ enum Status {
   transfer
 }
 
+enum CoinType {
+  coin
+  fiat
+  stable
+}
+
 enum DepositStatus {
   deposit
   withdraw
@@ -50,24 +56,24 @@ model Transactions {
   user           User     @relation(fields: [userId], references: [id])
   userId         String
   purchse_price  Float    @default(0)
-  status         Status   
+  status         Status
   createdAt      DateTime @default(now())
 }
 
 model Coins {
-  id         String @id @default(uuid())
-  coinId     String
-  coinName   String
-  symbol     String
-  amount     Float
-  img        String
-  isFiat     Boolean
-  spendMoney Float
-  avgPrice   Float
-  fromTransactions  Transactions[] @relation("fromCoinRelation")
-  toTransactions    Transactions[] @relation("toCoinRelation")
-  user       User   @relation(fields: [userId], references: [id])
-  userId     String
+  id               String         @id @default(uuid())
+  coinId           String
+  coinName         String
+  symbol           String
+  amount           Float
+  img              String
+  type             CoinType
+  spendMoney       Float
+  avgPrice         Float
+  fromTransactions Transactions[] @relation("fromCoinRelation")
+  toTransactions   Transactions[] @relation("toCoinRelation")
+  user             User           @relation(fields: [userId], references: [id])
+  userId           String
 }
 
 model WalletValues {
@@ -88,12 +94,12 @@ model Tokens {
 }
 
 model Deposits {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
+  id        String        @id @default(uuid())
+  createdAt DateTime      @default(now())
   amount    Float
-  currency  String   @default("usd")
+  currency  String        @default("usd")
   status    DepositStatus
-  user      User     @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
   userId    String
 }
 
@@ -103,4 +109,14 @@ model ActionTokens {
   value     Int
   type      String
   userEmail String
+}
+
+model Fiat {
+  id        String   @id @default(uuid())
+  updatedAt DateTime @default(now()) @updatedAt
+  code      String   @unique
+  name      String
+  symbol    String
+  img       String
+  price     Float
 }

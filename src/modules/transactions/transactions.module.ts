@@ -9,13 +9,6 @@ import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [TransactionsController],
-  providers: [
-    TransactionsService,
-    CoinsService,
-    UserService,
-    PrismaService,
-    TokensHelper,
-    JwtService,
-  ],
+  providers: [TransactionsService, CoinsService, UserService, PrismaService, TokensHelper, JwtService],
 })
 export class TransactionsModule {}

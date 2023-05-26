@@ -6,11 +6,7 @@ import { PrismaService } from 'src/prisma.service';
 export class WalletValuesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(
-    userId: string,
-    fromDate: string,
-    toDate: string,
-  ): Promise<WalletValues[]> {
+  async findAll(userId: string, fromDate: string, toDate: string): Promise<WalletValues[]> {
     let where: any = { userId };
     if (fromDate && toDate) {
       const from = new Date(`${fromDate}T00:00:00.000Z`);
