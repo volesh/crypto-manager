@@ -117,23 +117,32 @@ export class DepositsService {
   // Update User And Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async updateData(deposit: CreateDepositDto, user: User, fiat: Coins) {
     const promisesArr = [];
+    const { price } = await this.prisma.fiat.findUnique({ where: { code: fiat.coinId } });
+    const spendMoney = deposit.amount / price;
     if (deposit.status === DepositsEnum.Buy) {
       const userUpdate = this.prisma.user.update({
         where: { id: user.id },
-        data: { invested: user.invested + deposit.amount },
+        data: { invested: user.invested + spendMoney },
       });
-      const fiatUpdate = this.coinsService.updateCoin(fiat.amount + deposit.amount, 1, fiat.spendMoney + deposit.amount, fiat.id);
+      const avg = (fiat.spendMoney + spendMoney) / (fiat.amount + deposit.amount);
+      const fiatUpdate = this.coinsService.updateCoin(fiat.amount + deposit.amount, avg, fiat.spendMoney + spendMoney, fiat.id);
 
       promisesArr.push(userUpdate);
       promisesArr.push(fiatUpdate);
     } else {
+      const withdraw = user.withdraw + spendMoney;
       const userUpdate = this.prisma.user.update({
         where: { id: user.id },
         data: {
-          withdraw: user.withdraw + deposit.amount,
+          withdraw,
         },
       });
-      const fiatUpdate = this.coinsService.updateCoin(fiat.amount - deposit.amount, 1, fiat.spendMoney - deposit.amount, fiat.id);
+      const fiatUpdate = this.coinsService.updateCoin(
+        fiat.amount - deposit.amount,
+        fiat.avgPrice,
+        fiat.spendMoney - spendMoney,
+        fiat.id,
+      );
       promisesArr.push(userUpdate);
       promisesArr.push(fiatUpdate);
     }

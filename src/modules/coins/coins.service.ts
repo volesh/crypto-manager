@@ -134,13 +134,13 @@ export class CoinsService {
     return this.prisma.coins.create({
       data: {
         amount: fiatDto.amount,
-        spendMoney: fiatDto.amount,
+        spendMoney: fiatDto.amount / fiat.price,
         type: CoinTypeEnum.Fiat,
         symbol: fiat.symbol,
         img: fiat.img,
         coinName: fiat.name,
         coinId: fiat.code,
-        avgPrice: 1,
+        avgPrice: fiatDto ? 1 / fiat.price : 0,
         user: { connect: { id: userId } },
       },
     });

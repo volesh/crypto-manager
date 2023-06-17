@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Fiat } from '@prisma/client';
+import { FiatResponse } from '../fiat/fiat.response';
 export class UserResponse {
   @ApiProperty({
     type: String,
@@ -45,7 +47,7 @@ export class UserResponse {
 
   @ApiProperty({
     type: Boolean,
-    example: false,
+    example: true,
   })
   isInitialized: boolean;
 
@@ -66,4 +68,7 @@ export class UserResponse {
     example: 2700,
   })
   totalIncome: number;
+
+  @ApiProperty({ type: FiatResponse })
+  currency: Fiat;
 }

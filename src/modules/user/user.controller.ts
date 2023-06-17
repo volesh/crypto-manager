@@ -1,6 +1,6 @@
 import { ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { Body, Controller, Get, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
@@ -21,8 +21,8 @@ export class UserController {
   @ApiResponse({ type: UserResponse })
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  getUser(@Req() request: IRequest): Promise<GetUserI> {
-    return this.userService.getOneUser(request.user.id);
+  getUser(@Req() request: IRequest, @Query('currency') currency: string = 'USD'): Promise<GetUserI> {
+    return this.userService.getOneUser(request.user.id, currency);
   }
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

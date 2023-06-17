@@ -250,21 +250,15 @@ export class TransactionsService {
     let fromSpendMoney = fromCoin.spendMoney + transaction.purchse_price;
     const toAmount = toCoin.amount - transaction.toCount;
     let toSpendMoney = toCoin.spendMoney - transaction.purchse_price;
-    if (fromCoin.type === CoinTypeEnum.Fiat || fromAmount === 0) {
-      fromSpendMoney = fromAmount;
-    }
-    if (toCoin.type === CoinTypeEnum.Fiat || toAmount === 0) {
-      toSpendMoney = toAmount;
-    }
-    const toAvgPrice = toAmount !== 0 ? toSpendMoney / toAmount : 0;
-    const fromAvgPrice = fromAmount !== 0 ? fromSpendMoney / fromAmount : 0;
+    const toAvgPrice = toAmount !== 0 ? toSpendMoney / toAmount : toCoin.avgPrice;
+    const fromAvgPrice = fromAmount !== 0 ? fromSpendMoney / fromAmount : fromCoin.avgPrice;
     await this.coinsService.updateCoin(fromAmount, fromAvgPrice, fromSpendMoney, fromCoin.id);
     await this.coinsService.updateCoin(toAmount, toAvgPrice, toSpendMoney, toCoin.id);
   }
 
   // New create transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async newCreateTransaction(transaction: CreateTransactionDto, userId: string) {
-    const user = await this.userService.getOneUser(userId);
+  async createTransaction(transaction: CreateTransactionDto, userId: string) {
+    const user = await this.userService.getOneUser(userId, 'USD');
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
@@ -292,17 +286,26 @@ export class TransactionsService {
     const spendMoney = transaction.fromCount * fromCoin.avgPrice;
     const fromAmount = fromCoin.amount - transaction.fromCount;
     const toAmount = toCoin.amount + transaction.toCount;
+    let fromSpendMoney = fromCoin.spendMoney - spendMoney;
+    if (fromSpendMoney < 0.01) fromSpendMoney = 0;
 
     if (fromType === toType && fromType === CoinTypeEnum.Fiat) {
-      await this.coinsService.updateCoin(fromAmount, 1, fromAmount, fromCoin.id);
-      await this.coinsService.updateCoin(toAmount, 1, toAmount, toCoin.id);
+      const toFiat = await this.prisma.fiat.findUnique({ where: { code: toCoin.coinId } });
+      if (!toFiat) {
+        throw new BadRequestException(`Fiat with code: ${toCoin.coinId} not found`);
+      }
+      const purchse_price = transaction.fromCount * fromCoin.avgPrice;
+      const toAvg = (toCoin.spendMoney + spendMoney) / toAmount;
+      await this.coinsService.updateCoin(fromAmount, fromCoin.avgPrice, fromSpendMoney, fromCoin.id);
+      await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney, toCoin.id);
       return this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
+        price_per_coin: purchse_price / transaction.toCount,
         toCoin: { connect: { id: toCoin.id } },
         user: { connect: { id: user.id } },
-        purchse_price: transaction.fromCount,
+        purchse_price,
         status: TransactionStatusEnum.Transfer,
       });
     }
@@ -310,7 +313,7 @@ export class TransactionsService {
     if (fromType === toType && fromType === CoinTypeEnum.Coin) {
       const fromAvg = fromAmount === 0 ? 0 : fromCoin.avgPrice;
       const toAvg = (toCoin.spendMoney + spendMoney) / toAmount;
-      await this.coinsService.updateCoin(fromAmount, fromAvg, fromCoin.spendMoney - spendMoney, fromCoin.id);
+      await this.coinsService.updateCoin(fromAmount, fromAvg, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney, toCoin.id);
       return this.saveTransaction({
         fromCount: transaction.fromCount,
@@ -329,16 +332,16 @@ export class TransactionsService {
         throw new BadRequestException(`Fiat with code: ${toCoin.coinId} not found`);
       }
       const fromAvg = fromAmount === 0 ? 0 : fromCoin.avgPrice;
-      const income = transaction.toCount / fiat.price - spendMoney;
+      const income = transaction.toCount * toCoin.avgPrice - spendMoney;
       await this.userService.updateUser({ fixedIncome: user.fixedIncome + income }, user.email);
-      await this.coinsService.updateCoin(fromAmount, fromAvg, fromCoin.spendMoney - spendMoney, fromCoin.id);
-      await this.coinsService.updateCoin(toAmount, 1, toAmount, toCoin.id);
+      await this.coinsService.updateCoin(fromAmount, fromAvg, fromSpendMoney, fromCoin.id);
+      await this.coinsService.updateCoin(toAmount, toCoin.avgPrice, toAmount * toCoin.avgPrice, toCoin.id);
       return this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
         toCoin: { connect: { id: toCoin.id } },
-        price_per_coin: transaction.toCount / transaction.fromCount,
+        price_per_coin: (transaction.toCount * toCoin.avgPrice) / transaction.fromCount,
         income,
         user: { connect: { id: user.id } },
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
@@ -351,18 +354,17 @@ export class TransactionsService {
       if (!fiat) {
         throw new BadRequestException(`Fiat with code: ${toCoin.coinId} not found`);
       }
-      const spendInDollar = spendMoney / fiat.price;
-      const toAvg = (toCoin.spendMoney + spendInDollar) / toAmount;
-      await this.coinsService.updateCoin(fromAmount, 1, fromAmount, fromCoin.id);
-      await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney / fiat.price, toCoin.id);
+      const toAvg = (toCoin.spendMoney + spendMoney) / toAmount;
+      await this.coinsService.updateCoin(fromAmount, fromCoin.avgPrice, fromSpendMoney, fromCoin.id);
+      await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney, toCoin.id);
       return this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
         toCoin: { connect: { id: toCoin.id } },
-        price_per_coin: transaction.fromCount / transaction.toCount,
+        price_per_coin: (transaction.fromCount * fromCoin.avgPrice) / transaction.toCount,
         user: { connect: { id: user.id } },
-        purchse_price: transaction.fromCount,
+        purchse_price: transaction.fromCount * fromCoin.avgPrice,
         status: TransactionStatusEnum.Buy,
       });
     }

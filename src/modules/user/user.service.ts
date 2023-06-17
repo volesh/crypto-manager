@@ -6,10 +6,10 @@ import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
 import { CoinsService } from '../coins/coins.service';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
-import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
+import { createUserPresenter } from 'src/general/presenters/create.user.presenter';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { userInfo } from 'os';
+import { fiatPresenter } from 'src/general/presenters/fiat.presenter';
 
 @Injectable()
 export class UserService {
@@ -20,9 +20,18 @@ export class UserService {
   ) {}
 
   // Get One User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getOneUser(id: string): Promise<GetUserI> {
+  async getOneUser(id: string, currency: string): Promise<GetUserI> {
     const user = await this.getFullUserInfo({ id });
-    return createUserPresenter(user);
+    const fiat = await this.prisma.fiat.findUnique({ where: { code: currency } });
+    if (!fiat) {
+      throw new BadRequestException(`Fiat with code ${currency} not found`);
+    }
+    const userForResponse = fiatPresenter(
+      user,
+      ['balance', 'fiat', 'fixedIncome', 'notFixedIncome', 'totalIncome', 'withdraw'],
+      fiat,
+    );
+    return createUserPresenter({ ...userForResponse, currency: fiat });
   }
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -78,7 +87,7 @@ export class UserService {
       await this.coinsService.createCoin(coin, id);
     }
 
-    //Create usd coin
+    //Create fiat coin
     const promises = fiat.map((currency) => {
       return this.coinsService.createFiat(currency, isUserExist.id);
     });
@@ -113,8 +122,8 @@ export class UserService {
     return {
       ...isUserExist,
       balance: balance + fiat,
-      fiat,
-      notFixedIncome,
+      fiat: fiat,
+      notFixedIncome: notFixedIncome,
       totalIncome: isUserExist.fixedIncome + notFixedIncome,
     };
   }

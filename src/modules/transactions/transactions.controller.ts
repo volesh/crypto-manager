@@ -50,7 +50,7 @@ export class TransactionsController {
   @UseGuards(AuthGuard('jwt'))
   @Post()
   createTransaction(@Body() transaction: CreateTransactionDto, @Req() request: IRequest): Promise<Transactions> {
-    return this.transactionsService.newCreateTransaction(transaction, request.user.id);
+    return this.transactionsService.createTransaction(transaction, request.user.id);
   }
 
   // Delete Transactions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
