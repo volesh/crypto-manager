@@ -7,4 +7,5 @@ export interface CreatedUserI {
   invested: number;
   withdraw: number;
   isInitialized: boolean;
+  defaultCurrency: string
 }

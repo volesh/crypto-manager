@@ -28,19 +28,20 @@ enum DepositStatus {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  name          String
-  email         String         @unique
-  password      String
-  fixedIncome   Float          @default(0)
-  invested      Float          @default(0)
-  withdraw      Float          @default(0)
-  isInitialized Boolean        @default(false)
-  transactions  Transactions[]
-  coins         Coins[]
-  walletValues  WalletValues[]
-  tokens        Tokens[]
-  deposits      Deposits[]
+  id              String         @id @default(uuid())
+  name            String
+  email           String         @unique
+  password        String
+  fixedIncome     Float          @default(0)
+  invested        Float          @default(0)
+  withdraw        Float          @default(0)
+  isInitialized   Boolean        @default(false)
+  defaultCurrency String         @default("USD")
+  transactions    Transactions[]
+  coins           Coins[]
+  walletValues    WalletValues[]
+  tokens          Tokens[]
+  deposits        Deposits[]
 }
 
 model Transactions {

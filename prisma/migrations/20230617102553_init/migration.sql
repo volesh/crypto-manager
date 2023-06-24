@@ -2,6 +2,9 @@
 CREATE TYPE "Status" AS ENUM ('buy', 'sell', 'transfer');
 
 -- CreateEnum
+CREATE TYPE "CoinType" AS ENUM ('coin', 'fiat', 'stable');
+
+-- CreateEnum
 CREATE TYPE "DepositStatus" AS ENUM ('deposit', 'withdraw');
 
 -- CreateTable
@@ -14,6 +17,7 @@ CREATE TABLE "User" (
     "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isInitialized" BOOLEAN NOT NULL DEFAULT false,
+    "defaultCurrency" TEXT NOT NULL DEFAULT 'USD',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -43,7 +47,7 @@ CREATE TABLE "Coins" (
     "symbol" TEXT NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "img" TEXT NOT NULL,
-    "isFiat" BOOLEAN NOT NULL,
+    "type" "CoinType" NOT NULL,
     "spendMoney" DOUBLE PRECISION NOT NULL,
     "avgPrice" DOUBLE PRECISION NOT NULL,
     "userId" TEXT NOT NULL,
@@ -103,7 +107,7 @@ CREATE TABLE "Fiat" (
     "name" TEXT NOT NULL,
     "symbol" TEXT NOT NULL,
     "img" TEXT NOT NULL,
-    "price" INTEGER NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
 
     CONSTRAINT "Fiat_pkey" PRIMARY KEY ("id")
 );
