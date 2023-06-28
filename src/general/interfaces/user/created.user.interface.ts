@@ -1,3 +1,5 @@
+import { Fiat } from "@prisma/client";
+
 export interface CreatedUserI {
   id: string;
   name: string;
@@ -7,5 +9,4 @@ export interface CreatedUserI {
   invested: number;
   withdraw: number;
   isInitialized: boolean;
-  defaultCurrency: string
 }

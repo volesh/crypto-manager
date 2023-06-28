@@ -12,7 +12,6 @@ export interface GetUserI {
   isInitialized: boolean;
   notFixedIncome: number;
   totalIncome: number;
-  defaultCurrency: string
   password?: string;
   currency?: Fiat;
 }

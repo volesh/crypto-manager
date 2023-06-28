@@ -1,3 +1,4 @@
+import { CurrencyHelper } from './../../general/helpers/currency.helper';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PasswordHelper } from 'src/general/helpers/password.helper';
@@ -9,7 +10,7 @@ import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { createUserPresenter } from 'src/general/presenters/create.user.presenter';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { fiatPresenter } from 'src/general/presenters/fiat.presenter';
+import { currencyFileds } from 'src/general/configs/currency.fields';
 
 @Injectable()
 export class UserService {
@@ -26,11 +27,7 @@ export class UserService {
     if (!fiat) {
       throw new BadRequestException(`Fiat with code ${currency} not found`);
     }
-    const userForResponse = fiatPresenter(
-      user,
-      ['balance', 'fiat', 'fixedIncome', 'notFixedIncome', 'totalIncome', 'withdraw'],
-      fiat,
-    );
+    const userForResponse = CurrencyHelper.calculateCurrency(user, currencyFileds.user, fiat);
     return createUserPresenter({ ...userForResponse, currency: fiat });
   }
 
@@ -48,6 +45,7 @@ export class UserService {
     // Create user with hashed password
     const createdUser = await this.prisma.user.create({
       data: { ...user, password: hashedPassword },
+      include: { currency: true },
     });
     const tokens = await this.tokensHelper.generateTokens(createdUser.id);
     await this.prisma.tokens.create({
@@ -57,7 +55,11 @@ export class UserService {
       },
     });
     // Return user without password
-    const userForResponse = createUserPresenter({ ...createdUser });
+    const userForResponse = CurrencyHelper.calculateCurrency(
+      createUserPresenter({ ...createdUser }),
+      currencyFileds.user,
+      createdUser.currency,
+    );
     return { user: userForResponse, tokens };
   }
 
@@ -80,6 +82,7 @@ export class UserService {
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { invested, isInitialized: true },
+      include: { currency: true },
     });
 
     // create new coins for user
@@ -96,7 +99,11 @@ export class UserService {
     // calculate balance and income
     const { balance, notFixedIncome, fiat: receivedFiat } = await this.coinsService.calculateCryptoBalance(id);
     //return data
-    const userForResponse = createUserPresenter(updatedUser);
+    const userForResponse = CurrencyHelper.calculateCurrency(
+      createUserPresenter(updatedUser),
+      currencyFileds.user,
+      updatedUser.currency,
+    );
     return {
       ...userForResponse,
       balance: balance + receivedFiat,

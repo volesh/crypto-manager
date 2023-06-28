@@ -28,20 +28,21 @@ enum DepositStatus {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  name            String
-  email           String         @unique
-  password        String
-  fixedIncome     Float          @default(0)
-  invested        Float          @default(0)
-  withdraw        Float          @default(0)
-  isInitialized   Boolean        @default(false)
-  defaultCurrency String         @default("USD")
-  transactions    Transactions[]
-  coins           Coins[]
-  walletValues    WalletValues[]
-  tokens          Tokens[]
-  deposits        Deposits[]
+  id            String         @id @default(uuid())
+  name          String
+  email         String         @unique
+  password      String
+  fixedIncome   Float          @default(0)
+  invested      Float          @default(0)
+  withdraw      Float          @default(0)
+  isInitialized Boolean        @default(false)
+  currencyId    String         @default("c6280c4b-4a79-4e45-8291-84d31e1e5a72")
+  currency      Fiat           @relation(fields: [currencyId], references: [id])
+  transactions  Transactions[]
+  coins         Coins[]
+  walletValues  WalletValues[]
+  tokens        Tokens[]
+  deposits      Deposits[]
 }
 
 model Transactions {
@@ -120,4 +121,5 @@ model Fiat {
   symbol    String
   img       String
   price     Float
+  user      User[]
 }

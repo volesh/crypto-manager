@@ -17,7 +17,7 @@ CREATE TABLE "User" (
     "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isInitialized" BOOLEAN NOT NULL DEFAULT false,
-    "defaultCurrency" TEXT NOT NULL DEFAULT 'USD',
+    "currencyId" TEXT NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -117,6 +117,9 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Fiat_code_key" ON "Fiat"("code");
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_currencyId_fkey" FOREIGN KEY ("currencyId") REFERENCES "Fiat"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_fromCoinId_fkey" FOREIGN KEY ("fromCoinId") REFERENCES "Coins"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
