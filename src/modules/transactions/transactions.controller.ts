@@ -1,3 +1,4 @@
+import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
 import { ApiTags, ApiBody, ApiBearerAuth, ApiCreatedResponse, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
@@ -55,11 +56,11 @@ export class TransactionsController {
 
   // Delete Transactions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   @ApiBearerAuth()
-  @ApiResponse({ type: CreateTransactionResponse })
+  @ApiResponse({ type: Stringresponse })
   @ApiParam({ name: 'id', required: true, type: String })
   @UseGuards(AuthGuard('jwt'))
   @Delete('/:id')
-  deleteTransaction(@Param('id') id: string): Promise<Transactions> {
+  deleteTransaction(@Param('id') id: string): Promise<Stringresponse> {
     return this.transactionsService.deleteTransaction(id);
   }
 }

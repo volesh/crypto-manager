@@ -1,5 +1,6 @@
+import { currencyFileds } from 'src/general/configs/currency.fields';
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
-import { Coins, Prisma, Transactions, User } from '@prisma/client';
+import { Coins, Prisma, Transactions, User, Fiat } from '@prisma/client';
 import { CreateTransactionDto } from './dto/create.transaction.dto';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
@@ -8,6 +9,9 @@ import { CoinsService } from '../coins/coins.service';
 import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
+import { CurrencyHelper } from 'src/general/helpers/currency.helper';
+import { FiatResponse } from 'src/general/swagger.responses/fiat/fiat.response';
+import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 
 @Injectable()
 export class TransactionsService {
@@ -29,6 +33,8 @@ export class TransactionsService {
   ): Promise<PaginationResponseI<Transactions>> {
     const skip = (page - 1) * perPage;
     const where = this.generateWhere(date, userId, coinId, status);
+    const user = await this.userService.getOneUser(userId);
+    const fiat = await this.prisma.fiat.findUnique({ where: { id: user.currencyId } });
     const totalTransactions = await this.prisma.transactions.count({
       where,
     });
@@ -41,16 +47,20 @@ export class TransactionsService {
       take: perPage,
       orderBy: { [orderBy]: 'asc' },
     });
+    const transformedTransactions = transactions.map((transaction) => {
+      return CurrencyHelper.calculateCurrency(transaction, currencyFileds.transaction, fiat);
+    });
     return {
-      data: transactions,
+      data: transformedTransactions,
       page: page,
       perPage,
       totalPages,
+      currency: fiat,
     };
   }
 
   // Delete Transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async deleteTransaction(id: string): Promise<Transactions> {
+  async deleteTransaction(id: string): Promise<StringresponseI> {
     const transactionForDelete = await this.prisma.transactions.findUnique({
       where: { id },
       include: { fromCoin: true, toCoin: true, user: true },
@@ -69,7 +79,8 @@ export class TransactionsService {
     }
     // Change from coin
     await this.updateCoinsAfterDelete(transactionForDelete.fromCoin, transactionForDelete.toCoin, transactionForDelete);
-    return this.prisma.transactions.delete({ where: { id } });
+    await this.prisma.transactions.delete({ where: { id } });
+    return { status: 'Transaction deleted' };
   }
 
   // Create Transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -258,7 +269,7 @@ export class TransactionsService {
 
   // New create transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createTransaction(transaction: CreateTransactionDto, userId: string) {
-    const user = await this.userService.getOneUser(userId, 'USD');
+    const user = await this.userService.getOneUser(userId);
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
@@ -280,7 +291,7 @@ export class TransactionsService {
     fromCoin: Coins,
     toCoin: Coins,
     user: GetUserI,
-  ): Promise<Transactions> {
+  ): Promise<Transactions & { currency: Fiat }> {
     const fromType = fromCoin.type;
     const toType = toCoin.type;
     const spendMoney = transaction.fromCount * fromCoin.avgPrice;
@@ -298,7 +309,7 @@ export class TransactionsService {
       const toAvg = (toCoin.spendMoney + spendMoney) / toAmount;
       await this.coinsService.updateCoin(fromAmount, fromCoin.avgPrice, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney, toCoin.id);
-      return this.saveTransaction({
+      const createdTransaction = await this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
@@ -308,6 +319,12 @@ export class TransactionsService {
         purchse_price,
         status: TransactionStatusEnum.Transfer,
       });
+      const transformedTransaction = CurrencyHelper.calculateCurrency(
+        createdTransaction,
+        currencyFileds.transaction,
+        user.currency,
+      );
+      return { ...transformedTransaction, currency: user.currency };
     }
 
     if (fromType === toType && fromType === CoinTypeEnum.Coin) {
@@ -315,7 +332,7 @@ export class TransactionsService {
       const toAvg = (toCoin.spendMoney + spendMoney) / toAmount;
       await this.coinsService.updateCoin(fromAmount, fromAvg, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney, toCoin.id);
-      return this.saveTransaction({
+      const createdTransaction = await this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
@@ -324,6 +341,13 @@ export class TransactionsService {
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
         status: TransactionStatusEnum.Transfer,
       });
+
+      const transformedTransaction = CurrencyHelper.calculateCurrency(
+        createdTransaction,
+        currencyFileds.transaction,
+        user.currency,
+      );
+      return { ...transformedTransaction, currency: user.currency };
     }
 
     if (fromType === CoinTypeEnum.Coin && toType === CoinTypeEnum.Fiat) {
@@ -336,7 +360,7 @@ export class TransactionsService {
       await this.userService.updateUser({ fixedIncome: user.fixedIncome + income }, user.email);
       await this.coinsService.updateCoin(fromAmount, fromAvg, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toCoin.avgPrice, toAmount * toCoin.avgPrice, toCoin.id);
-      return this.saveTransaction({
+      const createdTransaction = await this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
@@ -347,6 +371,13 @@ export class TransactionsService {
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
         status: TransactionStatusEnum.Sell,
       });
+
+      const transformedTransaction = CurrencyHelper.calculateCurrency(
+        createdTransaction,
+        currencyFileds.transaction,
+        user.currency,
+      );
+      return { ...transformedTransaction, currency: user.currency };
     }
 
     if (fromType === CoinTypeEnum.Fiat && toType === CoinTypeEnum.Coin) {
@@ -357,7 +388,7 @@ export class TransactionsService {
       const toAvg = (toCoin.spendMoney + spendMoney) / toAmount;
       await this.coinsService.updateCoin(fromAmount, fromCoin.avgPrice, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toAvg, toCoin.spendMoney + spendMoney, toCoin.id);
-      return this.saveTransaction({
+      const createdTransaction = await this.saveTransaction({
         fromCount: transaction.fromCount,
         fromCoin: { connect: { id: fromCoin.id } },
         toCount: transaction.toCount,
@@ -367,6 +398,13 @@ export class TransactionsService {
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
         status: TransactionStatusEnum.Buy,
       });
+
+      const transformedTransaction = CurrencyHelper.calculateCurrency(
+        createdTransaction,
+        currencyFileds.transaction,
+        user.currency,
+      );
+      return { ...transformedTransaction, currency: user.currency };
     }
   }
 }

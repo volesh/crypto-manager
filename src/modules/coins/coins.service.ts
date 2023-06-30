@@ -7,6 +7,8 @@ import { OrderEnum } from 'src/general/enums/order.enum';
 import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
 import { CreateFiatDto } from './dto/create.fiat.dto';
 import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
+import { CurrencyHelper } from 'src/general/helpers/currency.helper';
+import { currencyFileds } from 'src/general/configs/currency.fields';
 
 @Injectable()
 export class CoinsService {
@@ -23,6 +25,7 @@ export class CoinsService {
   ): Promise<PaginationResponseI<Coins>> {
     const skip = (page - 1) * perPage;
     const where = this.generateWhere(userId, coinId);
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { currency: true } });
     const totalTransactions = await this.prisma.coins.count({
       where,
     });
@@ -33,11 +36,15 @@ export class CoinsService {
       take: perPage,
       orderBy: { [orderBy]: orderDirecrion },
     });
+    const updatedCoins = coins.map((coin) => {
+      return CurrencyHelper.calculateCurrency(coin, currencyFileds.coin, user.currency);
+    });
     return {
       page,
       totalPages,
       perPage,
-      data: coins,
+      data: updatedCoins,
+      currency: user.currency,
     };
   }
 
@@ -95,6 +102,7 @@ export class CoinsService {
         return coin.coinId;
       } else {
         const { price } = await this.prisma.fiat.findUnique({ where: { code: coin.coinId } });
+
         fiat += coin.amount / price;
       }
     });

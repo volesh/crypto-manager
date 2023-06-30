@@ -2,7 +2,7 @@ import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { WalletValuesService } from './wallet-values.service';
 import { AuthGuard } from '@nestjs/passport';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
-import type { WalletValues } from '@prisma/client';
+import type { Fiat, WalletValues } from '@prisma/client';
 import { ApiBearerAuth, ApiFoundResponse, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GetAllWalletValues } from 'src/general/swagger.responses/wallet.values.responses/get.all.response';
 import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
@@ -34,7 +34,7 @@ export class WalletValuesController {
     @Req() request: IRequest,
     @Query('from-date') fromDate?: string,
     @Query('to-date') toDate?: string,
-  ): Promise<WalletValues[]> {
+  ): Promise<{ data: WalletValues[]; currency: Fiat }> {
     return this.walletValuesService.findAll(request.user.id, fromDate, toDate);
   }
 }

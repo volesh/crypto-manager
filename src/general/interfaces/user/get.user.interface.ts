@@ -13,5 +13,6 @@ export interface GetUserI {
   notFixedIncome: number;
   totalIncome: number;
   password?: string;
+  currencyId: string;
   currency?: Fiat;
 }

@@ -21,8 +21,8 @@ export class UserController {
   @ApiResponse({ type: UserResponse })
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  getUser(@Req() request: IRequest, @Query('currency') currency: string = 'USD'): Promise<GetUserI> {
-    return this.userService.getOneUser(request.user.id, currency);
+  getUser(@Req() request: IRequest): Promise<GetUserI> {
+    return this.userService.getOneUser(request.user.id);
   }
 
   // Create User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

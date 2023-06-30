@@ -11,6 +11,7 @@ import { createUserPresenter } from 'src/general/presenters/create.user.presente
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
 import { currencyFileds } from 'src/general/configs/currency.fields';
+import { connect } from 'http2';
 
 @Injectable()
 export class UserService {
@@ -21,11 +22,11 @@ export class UserService {
   ) {}
 
   // Get One User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getOneUser(id: string, currency: string): Promise<GetUserI> {
+  async getOneUser(id: string): Promise<GetUserI> {
     const user = await this.getFullUserInfo({ id });
-    const fiat = await this.prisma.fiat.findUnique({ where: { code: currency } });
+    const fiat = await this.prisma.fiat.findUnique({ where: { id: user.currencyId } });
     if (!fiat) {
-      throw new BadRequestException(`Fiat with code ${currency} not found`);
+      throw new BadRequestException(`Fiat not found`);
     }
     const userForResponse = CurrencyHelper.calculateCurrency(user, currencyFileds.user, fiat);
     return createUserPresenter({ ...userForResponse, currency: fiat });
@@ -35,6 +36,9 @@ export class UserService {
   async createUser(user: CreateUserDto): Promise<LoginResponseI> {
     user.email = this.validateEmail(user.email);
     user.password = user.password.trim();
+    if (!user.currencyId) {
+      user.currencyId = 'c6280c4b-4a79-4e45-8291-84d31e1e5a72';
+    }
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
@@ -140,7 +144,7 @@ export class UserService {
     if (where.email) {
       where.email = this.validateEmail(where.email);
     }
-    return this.prisma.user.findUnique({ where });
+    return this.prisma.user.findUnique({ where, include: { currency: true } });
   }
 
   // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

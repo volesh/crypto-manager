@@ -29,7 +29,7 @@ export class FiatResponse {
     type: String,
     example: '$',
   })
-  symbol: number;
+  symbol: string;
 
   @ApiProperty({
     type: String,

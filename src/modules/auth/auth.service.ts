@@ -39,6 +39,8 @@ export class AuthService {
     }
     const tokens = await this.tokensHelper.generateTokens(user.id);
     await this.saveTokens({ ...tokens, user: { connect: { id: user.id } } });
+    console.log(user.currency);
+
     const userForResponse = CurrencyHelper.calculateCurrency(createUserPresenter(user), currencyFileds.user, user.currency);
 
     return {
