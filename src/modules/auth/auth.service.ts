@@ -13,8 +13,8 @@ import { ChangePassDto } from './dto/change.pass.dto';
 import { ReqUserI } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
-import { currencyFileds } from 'src/general/configs/currency.fields';
 import { CurrencyHelper } from 'src/general/helpers/currency.helper';
+import { currencyFileds } from 'src/general/configs/currency.fields';
 
 @Injectable()
 export class AuthService {
@@ -39,7 +39,6 @@ export class AuthService {
     }
     const tokens = await this.tokensHelper.generateTokens(user.id);
     await this.saveTokens({ ...tokens, user: { connect: { id: user.id } } });
-    console.log(user.currency);
 
     const userForResponse = CurrencyHelper.calculateCurrency(createUserPresenter(user), currencyFileds.user, user.currency);
 
