@@ -2,7 +2,7 @@ import { PaginationResponseI } from './../../general/interfaces/pagination/pagin
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateCoinDto } from './dto/create.coin.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Coins, Prisma } from '@prisma/client';
+import { Coins, Fiat, Prisma } from '@prisma/client';
 import { OrderEnum } from 'src/general/enums/order.enum';
 import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
 import { CreateFiatDto } from './dto/create.fiat.dto';
@@ -127,7 +127,7 @@ export class CoinsService {
   }
 
   // Get All fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getFiatList() {
+  async getFiatList(): Promise<Fiat[]> {
     return await this.prisma.fiat.findMany();
   }
 
