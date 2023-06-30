@@ -10,7 +10,7 @@ export class WalletSchedule {
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async removeExpiredTokens() {
     const users = await this.prisma.user.findMany({ select: { id: true } });
-    for (let user of users) {
+    for (const user of users) {
       const { balance, fiat } = await this.coinsService.calculateCryptoBalance(user.id);
       await this.prisma.walletValues.create({
         data: {

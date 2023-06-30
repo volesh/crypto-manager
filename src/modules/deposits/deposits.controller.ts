@@ -1,15 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query, UseGuards } from '@nestjs/common';
-import { DepositsService } from './deposits.service';
-import { CreateDepositDto } from './dto/create-deposit.dto';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { Deposits } from '@prisma/client';
-import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
-import { DepositsEnum } from 'src/general/enums/deposits.enum';
-import { OrderEnum } from 'src/general/enums/order.enum';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Deposits } from '@prisma/client';
+import { DepositsEnum, OrderEnum } from 'src/general/enums';
+import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
+import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { DepositResponse } from 'src/general/swagger.responses/deposits.responses/deposit.response';
 import { GetAllDepositsResponse } from 'src/general/swagger.responses/deposits.responses/get.all.deposits.response';
+
+import { DepositsService } from './deposits.service';
+import { CreateDepositDto } from './dto/create-deposit.dto';
 
 @ApiTags('deposits')
 @Controller('deposits')
@@ -35,10 +35,10 @@ export class DepositsController {
   @Get()
   findAll(
     @Req() request: IRequest,
-    @Query('page') page: number = 1,
-    @Query('per_page') perPage: number = 10,
+    @Query('page') page = 1,
+    @Query('per_page') perPage = 10,
     @Query('status') status?: DepositsEnum,
-    @Query('order_by') orderBy: string = 'createdAt',
+    @Query('order_by') orderBy = 'createdAt',
     @Query('order_direcrion') orderDirecrion: OrderEnum = OrderEnum.DESC,
   ): Promise<PaginationResponseI<Deposits>> {
     return this.depositsService.findAll(request.user.id, +page, +perPage, status, orderDirecrion, orderBy);

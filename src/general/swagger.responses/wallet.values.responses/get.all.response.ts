@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatResponse } from '../fiat/fiat.response';
 import { Fiat } from '@prisma/client';
+
+import { FiatResponse } from '../fiat/fiat.response';
 
 class WalletValues {
   @ApiProperty({

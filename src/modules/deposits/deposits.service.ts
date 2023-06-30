@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateDepositDto } from './dto/create-deposit.dto';
-import { PrismaService } from 'src/prisma.service';
 import { Coins, Deposits, Prisma, User } from '@prisma/client';
+import { DepositsEnum, OrderEnum } from 'src/general/enums';
 import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
-import { DepositsEnum } from 'src/general/enums/deposits.enum';
-import { OrderEnum } from 'src/general/enums/order.enum';
+import { PrismaService } from 'src/prisma.service';
+
 import { CoinsService } from '../coins/coins.service';
+import { CreateDepositDto } from './dto/create-deposit.dto';
 
 @Injectable()
 export class DepositsService {

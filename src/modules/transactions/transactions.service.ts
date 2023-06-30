@@ -1,17 +1,16 @@
-import { currencyFileds } from 'src/general/configs/currency.fields';
-import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
-import { Coins, Prisma, Transactions, User, Fiat } from '@prisma/client';
-import { CreateTransactionDto } from './dto/create.transaction.dto';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma.service';
-import { UserService } from '../user/user.service';
-import { CoinsService } from '../coins/coins.service';
-import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
-import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
-import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
-import { CurrencyHelper } from 'src/general/helpers/currency.helper';
-import { FiatResponse } from 'src/general/swagger.responses/fiat/fiat.response';
+import { Coins, Fiat, Prisma, Transactions, User } from '@prisma/client';
+import { currencyFileds } from 'src/general/configs';
+import { CoinTypeEnum, TransactionStatusEnum } from 'src/general/enums';
+import { CurrencyHelper } from 'src/general/helpers';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
+import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
+import { PrismaService } from 'src/prisma.service';
+
+import { CoinsService } from '../coins/coins.service';
+import { UserService } from '../user/user.service';
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
+import { CreateTransactionDto } from './dto/create.transaction.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -258,9 +257,9 @@ export class TransactionsService {
   // Update Coins After Delete !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async updateCoinsAfterDelete(fromCoin: Coins, toCoin: Coins, transaction: Transactions) {
     const fromAmount = fromCoin.amount + transaction.fromCount;
-    let fromSpendMoney = fromCoin.spendMoney + transaction.purchse_price;
+    const fromSpendMoney = fromCoin.spendMoney + transaction.purchse_price;
     const toAmount = toCoin.amount - transaction.toCount;
-    let toSpendMoney = toCoin.spendMoney - transaction.purchse_price;
+    const toSpendMoney = toCoin.spendMoney - transaction.purchse_price;
     const toAvgPrice = toAmount !== 0 ? toSpendMoney / toAmount : toCoin.avgPrice;
     const fromAvgPrice = fromAmount !== 0 ? fromSpendMoney / fromAmount : fromCoin.avgPrice;
     await this.coinsService.updateCoin(fromAmount, fromAvgPrice, fromSpendMoney, fromCoin.id);

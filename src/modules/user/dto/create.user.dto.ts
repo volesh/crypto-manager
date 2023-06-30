@@ -25,7 +25,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  @ApiProperty({type: String, example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33'})
+  @ApiProperty({ type: String, example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33' })
   @IsOptional()
-  currencyId: string
+  currencyId: string;
 }

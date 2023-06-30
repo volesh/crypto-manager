@@ -1,18 +1,19 @@
 import { Module, OnApplicationBootstrap } from '@nestjs/common';
-import { UserModule } from '../user/user.module';
-import { AuthModule } from '../auth/auth.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { envConfig } from 'src/general/configs/envConfig';
-import { TransactionsModule } from '../transactions/transactions.module';
-import { CoinsModule } from '../coins/coins.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { PrismaService } from 'src/prisma.service';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { TokensSchedule } from 'src/cronJobs/tokens.cronjobs';
 import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
-import { CoinsService } from '../coins/coins.service';
-import { WalletValuesModule } from '../wallet-values/wallet-values.module';
-import { DepositsModule } from '../deposits/deposits.module';
+import { envConfig } from 'src/general/configs';
+import { PrismaService } from 'src/prisma.service';
 import { ExchangeService } from 'src/services/coingecko/exchange.service';
+
+import { AuthModule } from '../auth/auth.module';
+import { CoinsModule } from '../coins/coins.module';
+import { CoinsService } from '../coins/coins.service';
+import { DepositsModule } from '../deposits/deposits.module';
+import { TransactionsModule } from '../transactions/transactions.module';
+import { UserModule } from '../user/user.module';
+import { WalletValuesModule } from '../wallet-values/wallet-values.module';
 
 @Module({
   imports: [

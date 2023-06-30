@@ -1,17 +1,15 @@
-import { CurrencyHelper } from './../../general/helpers/currency.helper';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
-import { PasswordHelper } from 'src/general/helpers/password.helper';
+import { currencyFileds } from 'src/general/configs';
+import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helpers';
+import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
+import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
+import { createUserPresenter } from 'src/general/presenters';
 import { PrismaService } from 'src/prisma.service';
+
+import { CoinsService } from '../coins/coins.service';
 import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
-import { CoinsService } from '../coins/coins.service';
-import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
-import { createUserPresenter } from 'src/general/presenters/create.user.presenter';
-import { TokensHelper } from 'src/general/helpers/tokens.helper';
-import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { currencyFileds } from 'src/general/configs/currency.fields';
-import { connect } from 'http2';
 
 @Injectable()
 export class UserService {
@@ -90,7 +88,7 @@ export class UserService {
     });
 
     // create new coins for user
-    for (let coin of data.coins) {
+    for (const coin of data.coins) {
       await this.coinsService.createCoin(coin, id);
     }
 

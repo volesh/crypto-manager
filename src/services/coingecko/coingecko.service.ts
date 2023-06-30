@@ -1,8 +1,7 @@
-import { urls } from 'src/general/configs/coingecko.config';
-import { CoinsListI } from 'src/general/interfaces/coingecko/coins.list.interface';
-import { CoinMarketI } from 'src/general/interfaces/coingecko/coin.market.interface';
 import axios from 'axios';
-import { baseURL } from 'src/general/configs/coingecko.config';
+import { baseURL, urls } from 'src/general/configs';
+import { CoinMarketI } from 'src/general/interfaces/coingecko/coin.market.interface';
+import { CoinsListI } from 'src/general/interfaces/coingecko/coins.list.interface';
 
 export const axiosService = axios.create({ baseURL });
 

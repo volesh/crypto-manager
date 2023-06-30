@@ -1,7 +1,8 @@
-import { JwtService } from '@nestjs/jwt';
-import { TokensI } from '../interfaces/tokens/tokens.interface';
-import { envConfig } from '../configs/envConfig';
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+
+import { envConfig } from '../configs/envConfig';
+import { TokensI } from '../interfaces/tokens/tokens.interface';
 
 @Injectable()
 export class TokensHelper {

@@ -1,13 +1,14 @@
-import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
-import { CoinsService } from './coins.service';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { Coins, Fiat } from '@prisma/client';
-import { OrderEnum } from 'src/general/enums/order.enum';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Coins, Fiat } from '@prisma/client';
+import { OrderEnum } from 'src/general/enums';
+import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { GetAllCoinsResponse } from 'src/general/swagger.responses/coins.responses/get.al.coins.response';
 import { FiatResponse } from 'src/general/swagger.responses/fiat/fiat.response';
+
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
+import { CoinsService } from './coins.service';
 
 @ApiTags('coins')
 @Controller('coins')
@@ -26,9 +27,9 @@ export class CoinsController {
   @Get()
   getCoins(
     @Req() { user }: IRequest,
-    @Query('page') page: number = 1,
-    @Query('per_page') perPage: number = 10,
-    @Query('order_by') orderBy: string = 'spendMoney',
+    @Query('page') page = 1,
+    @Query('per_page') perPage = 10,
+    @Query('order_by') orderBy = 'spendMoney',
     @Query('order_direcrion') orderDirecrion: OrderEnum = OrderEnum.DESC,
     @Query('coinId') coinId?: string,
   ): Promise<PaginationResponseI<Coins>> {

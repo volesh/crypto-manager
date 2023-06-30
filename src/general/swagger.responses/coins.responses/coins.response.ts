@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
+import { CoinTypeEnum } from 'src/general/enums';
 
 export class CoinsResponse {
   @ApiProperty({

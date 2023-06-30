@@ -1,14 +1,14 @@
-import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { CreateCoinDto } from './dto/create.coin.dto';
-import { PrismaService } from 'src/prisma.service';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Coins, Fiat, Prisma } from '@prisma/client';
-import { OrderEnum } from 'src/general/enums/order.enum';
+import { currencyFileds } from 'src/general/configs';
+import { CoinTypeEnum, OrderEnum } from 'src/general/enums';
+import { CurrencyHelper } from 'src/general/helpers';
+import { PrismaService } from 'src/prisma.service';
 import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
+
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
+import { CreateCoinDto } from './dto/create.coin.dto';
 import { CreateFiatDto } from './dto/create.fiat.dto';
-import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
-import { CurrencyHelper } from 'src/general/helpers/currency.helper';
-import { currencyFileds } from 'src/general/configs/currency.fields';
 
 @Injectable()
 export class CoinsService {

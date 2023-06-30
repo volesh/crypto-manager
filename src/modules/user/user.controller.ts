@@ -1,15 +1,16 @@
-import { ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
-import { UserService } from './user.service';
 import { Body, Controller, Get, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { IRequest } from 'src/general/interfaces/request/request.interface';
+import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
+import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
+import { LoginResponse } from 'src/general/swagger.responses/auth.responses/login.response';
+import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
+import { UserResponse } from 'src/general/swagger.responses/user.responses/user.response';
+
 import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
-import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
-import { AuthGuard } from '@nestjs/passport';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
-import { LoginResponse } from 'src/general/swagger.responses/auth.responses/login.response';
-import { UserResponse } from 'src/general/swagger.responses/user.responses/user.response';
+import { UserService } from './user.service';
 
 @ApiTags('user')
 @Controller('user')

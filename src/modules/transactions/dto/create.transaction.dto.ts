@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
+import { CoinTypeEnum } from 'src/general/enums';
+
 export class CreateTransactionDto {
   @IsString()
   @IsNotEmpty()

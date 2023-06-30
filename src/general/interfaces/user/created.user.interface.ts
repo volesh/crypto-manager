@@ -1,4 +1,4 @@
-import { Fiat } from "@prisma/client";
+import { Fiat } from '@prisma/client';
 
 export interface CreatedUserI {
   id: string;

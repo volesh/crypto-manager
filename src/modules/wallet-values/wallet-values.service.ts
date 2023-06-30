@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Fiat, WalletValues } from '@prisma/client';
-import { currencyFileds } from 'src/general/configs/currency.fields';
-import { CurrencyHelper } from 'src/general/helpers/currency.helper';
+import { currencyFileds } from 'src/general/configs';
+import { CurrencyHelper } from 'src/general/helpers';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
