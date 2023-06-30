@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "currencyId" SET DEFAULT 'c6280c4b-4a79-4e45-8291-84d31e1e5a72';

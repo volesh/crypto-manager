@@ -14,10 +14,10 @@ export class DepositResponse {
   @ApiProperty({ type: Number, example: 500 })
   amount: number;
 
-  @ApiProperty({ type: String, example: 'usd' })
+  @ApiProperty({ type: String, example: 'UAH' })
   currency: string;
 
-  @ApiProperty({ type: String, examples: ['deposit', 'withdraw'] })
+  @ApiProperty({ type: String, example: 'deposit' })
   status: DepositStatus;
 
   @ApiProperty({

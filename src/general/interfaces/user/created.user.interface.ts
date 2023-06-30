@@ -1,3 +1,5 @@
+import { Fiat } from "@prisma/client";
+
 export interface CreatedUserI {
   id: string;
   name: string;

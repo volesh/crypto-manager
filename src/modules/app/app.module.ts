@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -12,6 +12,7 @@ import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
 import { CoinsService } from '../coins/coins.service';
 import { WalletValuesModule } from '../wallet-values/wallet-values.module';
 import { DepositsModule } from '../deposits/deposits.module';
+import { ExchangeService } from 'src/services/coingecko/exchange.service';
 
 @Module({
   imports: [
@@ -34,4 +35,17 @@ import { DepositsModule } from '../deposits/deposits.module';
   ],
   providers: [TokensSchedule, PrismaService, WalletSchedule, CoinsService],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  constructor(private readonly prisma: PrismaService) {}
+  async onApplicationBootstrap() {
+    const fiats = await this.prisma.fiat.findMany();
+    const exchange = await ExchangeService.getFiatList('USD');
+    for (const fiat of fiats) {
+      const price = exchange.conversion_rates[fiat.code];
+      if (price) {
+        await this.prisma.fiat.update({ where: { code: fiat.code }, data: { price } });
+      }
+    }
+    console.log('Exchange rates loaded successful');
+  }
+}

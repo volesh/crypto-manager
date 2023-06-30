@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 import { DepositsEnum } from 'src/general/enums/deposits.enum';
 
 export class CreateDepositDto {
@@ -11,7 +11,15 @@ export class CreateDepositDto {
 
   @ApiProperty({
     type: String,
-    examples: ['withdraw', 'deposit'],
+    example: 'UAH',
+  })
+  @IsString()
+  @IsNotEmpty()
+  code: string;
+
+  @ApiProperty({
+    type: String,
+    example: 'deposit',
   })
   @IsEnum(DepositsEnum)
   @IsNotEmpty()

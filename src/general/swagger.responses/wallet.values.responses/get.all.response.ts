@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { FiatResponse } from '../fiat/fiat.response';
+import { Fiat } from '@prisma/client';
 
-export class GetAllWalletValues {
+class WalletValues {
   @ApiProperty({
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
@@ -24,4 +26,16 @@ export class GetAllWalletValues {
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
   })
   userId: string;
+}
+
+export class GetAllWalletValues {
+  @ApiProperty({
+    type: [WalletValues],
+  })
+  data: WalletValues;
+
+  @ApiProperty({
+    type: FiatResponse,
+  })
+  currency: Fiat;
 }

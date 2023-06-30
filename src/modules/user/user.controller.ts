@@ -1,20 +1,6 @@
-import {
-  ApiResponse,
-  ApiTags,
-  ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
-} from '@nestjs/swagger';
+import { ApiResponse, ApiTags, ApiBearerAuth, ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Put,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from './dto/create.user.dto';
 import { InitUserDto } from './dto/init.data';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
@@ -54,10 +40,7 @@ export class UserController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Put('/init')
-  initUser(
-    @Body() initData: InitUserDto,
-    @Req() request: IRequest,
-  ): Promise<GetUserI> {
+  initUser(@Body() initData: InitUserDto, @Req() request: IRequest): Promise<GetUserI> {
     return this.userService.initUser(initData, request.user.id);
   }
 }

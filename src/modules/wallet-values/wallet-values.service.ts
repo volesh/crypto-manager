@@ -1,16 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { WalletValues } from '@prisma/client';
+import { Fiat, WalletValues } from '@prisma/client';
+import { currencyFileds } from 'src/general/configs/currency.fields';
+import { CurrencyHelper } from 'src/general/helpers/currency.helper';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class WalletValuesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(
-    userId: string,
-    fromDate: string,
-    toDate: string,
-  ): Promise<WalletValues[]> {
+  async findAll(userId: string, fromDate: string, toDate: string): Promise<{ data: WalletValues[]; currency: Fiat }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { currency: true } });
     let where: any = { userId };
     if (fromDate && toDate) {
       const from = new Date(`${fromDate}T00:00:00.000Z`);
@@ -38,6 +37,10 @@ export class WalletValuesService {
         AND: [{ userId }, { createdAt: { lte: to } }],
       };
     }
-    return this.prisma.walletValues.findMany({ where });
+    const wallets = await this.prisma.walletValues.findMany({ where });
+    const updatedWallets = wallets.map((wallet) => {
+      return CurrencyHelper.calculateCurrency(wallet, currencyFileds.wallet, user.currency);
+    });
+    return { data: updatedWallets, currency: user.currency };
   }
 }

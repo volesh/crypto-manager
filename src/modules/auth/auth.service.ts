@@ -1,24 +1,20 @@
 import { TokensTypeEnum } from '../../general/enums/tokens.types.enum';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Prisma } from '@prisma/client';
 import { PasswordHelper } from 'src/general/helpers/password.helper';
-import { JwtService } from '@nestjs/jwt';
-import { envConfig } from 'src/general/configs/envConfig';
 import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
 import { UserService } from '../user/user.service';
-import { createUserPresenter } from 'src/general/presenters/user/create.user.presenter';
+import { createUserPresenter } from 'src/general/presenters/create.user.presenter';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ChangePassDto } from './dto/change.pass.dto';
 import { ReqUserI } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { TokensHelper } from 'src/general/helpers/tokens.helper';
+import { currencyFileds } from 'src/general/configs/currency.fields';
+import { CurrencyHelper } from 'src/general/helpers/currency.helper';
 
 @Injectable()
 export class AuthService {
@@ -37,16 +33,16 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException(`User with email "${data.email}" not Found`);
     }
-    const isPasswordSame = await PasswordHelper.comparePassword(
-      user.password,
-      data.password,
-    );
+    const isPasswordSame = await PasswordHelper.comparePassword(user.password, data.password);
     if (!isPasswordSame) {
       throw new BadRequestException('Wrong password');
     }
     const tokens = await this.tokensHelper.generateTokens(user.id);
     await this.saveTokens({ ...tokens, user: { connect: { id: user.id } } });
-    const userForResponse = createUserPresenter(user);
+    console.log(user.currency);
+
+    const userForResponse = CurrencyHelper.calculateCurrency(createUserPresenter(user), currencyFileds.user, user.currency);
+
     return {
       user: userForResponse,
       tokens,
@@ -98,10 +94,7 @@ export class AuthService {
   }
 
   // Change Password !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async changePassword({
-    newPassword,
-    ...rest
-  }: ChangePassDto): Promise<StringresponseI> {
+  async changePassword({ newPassword, ...rest }: ChangePassDto): Promise<StringresponseI> {
     rest.email = this.userService.validateEmail(rest.email);
     await this.isCodeValid(rest, TokensTypeEnum.ForgotPass);
     const hashedPassword = await PasswordHelper.hashPassword(newPassword);
@@ -118,10 +111,7 @@ export class AuthService {
   }
 
   // Is code valid !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async isCodeValid(
-    data: { email: string; code: number },
-    type: TokensTypeEnum,
-  ): Promise<boolean> {
+  async isCodeValid(data: { email: string; code: number }, type: TokensTypeEnum): Promise<boolean> {
     data.email = this.userService.validateEmail(data.email);
     const token = await this.prisma.actionTokens.findFirst({
       where: { userEmail: data.email, value: data.code, type },

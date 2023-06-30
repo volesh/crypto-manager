@@ -30,6 +30,7 @@ module.exports = {
     '[prisma]': {
       'editor.defaultFormatter': 'Prisma.prisma',
     },
+    'max-len': ['error', { code: 130 }],
     'sort-imports': [
       'error',
       {

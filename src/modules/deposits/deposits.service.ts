@@ -1,9 +1,4 @@
-import { FiatEnum } from './../../general/enums/fiat.enam';
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Coins, Deposits, Prisma, User } from '@prisma/client';
@@ -11,20 +6,13 @@ import { PaginationResponseI } from 'src/general/interfaces/pagination/paginatio
 import { DepositsEnum } from 'src/general/enums/deposits.enum';
 import { OrderEnum } from 'src/general/enums/order.enum';
 import { CoinsService } from '../coins/coins.service';
-import { isEAN } from 'class-validator';
 
 @Injectable()
 export class DepositsService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly coinsService: CoinsService,
-  ) {}
+  constructor(private readonly prisma: PrismaService, private readonly coinsService: CoinsService) {}
 
   // Create !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async create(
-    createDepositDto: CreateDepositDto,
-    id: string,
-  ): Promise<Deposits> {
+  async create(createDepositDto: CreateDepositDto, id: string): Promise<Deposits> {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException(`User with id: ${id} not found`);
@@ -33,17 +21,12 @@ export class DepositsService {
       throw new BadRequestException('User is not initialized');
     }
     let fiat = await this.prisma.coins.findFirst({
-      where: { coinId: FiatEnum.Dolar, userId: user.id },
+      where: { coinId: createDepositDto.code, userId: user.id },
     });
     if (!fiat && createDepositDto.status === DepositsEnum.Buy) {
-      fiat = await this.coinsService.createFiat(createDepositDto.amount, id);
-    } else if (
-      (!fiat || fiat.amount < createDepositDto.amount) &&
-      createDepositDto.status === DepositsEnum.Sell
-    ) {
-      throw new BadRequestException(
-        `In your balance less then ${createDepositDto.amount}`,
-      );
+      fiat = await this.coinsService.createFiat(createDepositDto, id);
+    } else if ((!fiat || fiat.amount < createDepositDto.amount) && createDepositDto.status === DepositsEnum.Sell) {
+      throw new BadRequestException(`In your balance less then ${createDepositDto.amount}`);
     }
     await this.updateData(createDepositDto, user, fiat);
     const data: Prisma.DepositsCreateInput = {
@@ -97,28 +80,16 @@ export class DepositsService {
     }
     if (deposit.status === DepositsEnum.Buy) {
       if (fiat.amount < deposit.amount) {
-        throw new BadRequestException(
-          `You can't delete this deposit bacause in your balanse less then deposit amount`,
-        );
+        throw new BadRequestException(`You can't delete this deposit bacause in your balanse less then deposit amount`);
       } else {
-        await this.coinsService.updateCoin(
-          fiat.amount - deposit.amount,
-          1,
-          fiat.spendMoney - deposit.amount,
-          fiat.id,
-        );
+        await this.coinsService.updateCoin(fiat.amount - deposit.amount, 1, fiat.spendMoney - deposit.amount, fiat.id);
         await this.prisma.user.update({
           where: { id: deposit.userId },
           data: { invested: deposit.user.invested - deposit.amount },
         });
       }
     } else {
-      await this.coinsService.updateCoin(
-        fiat.amount + deposit.amount,
-        1,
-        fiat.spendMoney + deposit.amount,
-        fiat.id,
-      );
+      await this.coinsService.updateCoin(fiat.amount + deposit.amount, 1, fiat.spendMoney + deposit.amount, fiat.id);
       await this.prisma.user.update({
         where: { id: deposit.userId },
         data: {
@@ -146,31 +117,30 @@ export class DepositsService {
   // Update User And Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async updateData(deposit: CreateDepositDto, user: User, fiat: Coins) {
     const promisesArr = [];
+    const { price } = await this.prisma.fiat.findUnique({ where: { code: fiat.coinId } });
+    const spendMoney = deposit.amount / price;
     if (deposit.status === DepositsEnum.Buy) {
       const userUpdate = this.prisma.user.update({
         where: { id: user.id },
-        data: { invested: user.invested + deposit.amount },
+        data: { invested: user.invested + spendMoney },
       });
-      const fiatUpdate = this.coinsService.updateCoin(
-        fiat.amount + deposit.amount,
-        1,
-        fiat.spendMoney + deposit.amount,
-        fiat.id,
-      );
+      const avg = (fiat.spendMoney + spendMoney) / (fiat.amount + deposit.amount);
+      const fiatUpdate = this.coinsService.updateCoin(fiat.amount + deposit.amount, avg, fiat.spendMoney + spendMoney, fiat.id);
 
       promisesArr.push(userUpdate);
       promisesArr.push(fiatUpdate);
     } else {
+      const withdraw = user.withdraw + spendMoney;
       const userUpdate = this.prisma.user.update({
         where: { id: user.id },
         data: {
-          withdraw: user.withdraw + deposit.amount,
+          withdraw,
         },
       });
       const fiatUpdate = this.coinsService.updateCoin(
         fiat.amount - deposit.amount,
-        1,
-        fiat.spendMoney - deposit.amount,
+        fiat.avgPrice,
+        fiat.spendMoney - spendMoney,
         fiat.id,
       );
       promisesArr.push(userUpdate);

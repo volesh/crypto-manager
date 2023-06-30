@@ -12,15 +12,6 @@ import { TokensHelper } from 'src/general/helpers/tokens.helper';
 @Module({
   imports: [JwtModule.register({})],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    UserService,
-    PrismaService,
-    JwtService,
-    CoinsService,
-    AtStrategy,
-    RtStrategy,
-    TokensHelper,
-  ],
+  providers: [AuthService, UserService, PrismaService, JwtService, CoinsService, AtStrategy, RtStrategy, TokensHelper],
 })
 export class AuthModule {}

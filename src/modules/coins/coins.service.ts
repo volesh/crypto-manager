@@ -1,15 +1,14 @@
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateCoinDto } from './dto/create.coin.dto';
 import { PrismaService } from 'src/prisma.service';
-import { Coins, Prisma } from '@prisma/client';
-import { CoingeckoService } from 'src/coingecko/coingecko.service';
-import { FiatEnum } from 'src/general/enums/fiat.enam';
+import { Coins, Fiat, Prisma } from '@prisma/client';
 import { OrderEnum } from 'src/general/enums/order.enum';
+import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
+import { CreateFiatDto } from './dto/create.fiat.dto';
+import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
+import { CurrencyHelper } from 'src/general/helpers/currency.helper';
+import { currencyFileds } from 'src/general/configs/currency.fields';
 
 @Injectable()
 export class CoinsService {
@@ -26,6 +25,7 @@ export class CoinsService {
   ): Promise<PaginationResponseI<Coins>> {
     const skip = (page - 1) * perPage;
     const where = this.generateWhere(userId, coinId);
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { currency: true } });
     const totalTransactions = await this.prisma.coins.count({
       where,
     });
@@ -36,11 +36,15 @@ export class CoinsService {
       take: perPage,
       orderBy: { [orderBy]: orderDirecrion },
     });
+    const updatedCoins = coins.map((coin) => {
+      return CurrencyHelper.calculateCurrency(coin, currencyFileds.coin, user.currency);
+    });
     return {
       page,
       totalPages,
       perPage,
-      data: coins,
+      data: updatedCoins,
+      currency: user.currency,
     };
   }
 
@@ -52,7 +56,7 @@ export class CoinsService {
     if (!isUserExist) {
       throw new NotFoundException(`User with id: ${userId} not found`);
     }
-    const avgPrice = Math.round((coin.spendMoney / coin.amount) * 100) / 100;
+    const avgPrice = Math.round((coin.spendMoney / coin.amount) * 100) / 100 || 0;
     const coinMarket = await CoingeckoService.getCoinMarkest([coin.coinId]);
     if (coinMarket.length === 0) {
       throw new BadRequestException(`Coin with id ${coin.coinId} not found`);
@@ -63,7 +67,7 @@ export class CoinsService {
         ...coin,
         coinName: selectedCoin.name,
         symbol: selectedCoin.symbol,
-        isFiat: false,
+        type: CoinTypeEnum.Coin,
         img: selectedCoin.image,
         avgPrice,
         user: { connect: { id: userId } },
@@ -77,12 +81,7 @@ export class CoinsService {
   }
 
   // Update Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async updateCoin(
-    amount: number,
-    avgPrice: number,
-    spendMoney: number,
-    id: string,
-  ) {
+  async updateCoin(amount: number, avgPrice: number, spendMoney: number, id: string) {
     return this.prisma.coins.update({
       where: { id },
       data: { amount, avgPrice, spendMoney },
@@ -98,17 +97,20 @@ export class CoinsService {
     if (!coins) {
       return { balance, notFixedIncome };
     }
-    const listOfCoinId = coins.map((coin) => {
-      if (!coin.isFiat) {
+    const listOfCoinIdPromises = coins.map(async (coin) => {
+      if (coin.type !== CoinTypeEnum.Fiat) {
         return coin.coinId;
       } else {
-        fiat += coin.amount;
+        const { price } = await this.prisma.fiat.findUnique({ where: { code: coin.coinId } });
+
+        fiat += coin.amount / price;
       }
     });
+    const listOfCoinId = await Promise.all(listOfCoinIdPromises);
     const coinMarkets = await CoingeckoService.getCoinMarkest(listOfCoinId);
     coins.forEach((coin) => {
       const market = coinMarkets.find((item) => item.id === coin.coinId);
-      if (!market || coin.isFiat) {
+      if (!market || coin.type === CoinTypeEnum.Fiat) {
         return;
       }
       balance += market.current_price * coin.amount;
@@ -124,18 +126,29 @@ export class CoinsService {
     return this.prisma.coins.findMany({ where: { userId } });
   }
 
+  // Get All fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getFiatList(): Promise<Fiat[]> {
+    return await this.prisma.fiat.findMany();
+  }
+
   // Create fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createFiat(count: number, userId: string): Promise<Coins> {
+  async createFiat(fiatDto: CreateFiatDto, userId: string): Promise<Coins> {
+    const fiat = await this.prisma.fiat.findUnique({
+      where: { code: fiatDto.code },
+    });
+    if (!fiat) {
+      throw new NotFoundException(`Fiat with code: ${fiatDto.code} not found`);
+    }
     return this.prisma.coins.create({
       data: {
-        amount: count,
-        spendMoney: count,
-        isFiat: true,
-        symbol: '$',
-        img: 'https://www.google.com/search?q=dollar%20symbol&tbm=isch&tbs=ic:trans&rlz=1C1SQJL_ukUA935UA935&hl=uk&sa=X&ved=0CAMQpwVqFwoTCIDhrvCv__4CFQAAAAAdAAAAABAD&biw=1519&bih=714#imgrc=ddOoeTAN9jAalM',
-        coinName: 'USD',
-        coinId: FiatEnum.Dolar,
-        avgPrice: 1,
+        amount: fiatDto.amount,
+        spendMoney: fiatDto.amount / fiat.price,
+        type: CoinTypeEnum.Fiat,
+        symbol: fiat.symbol,
+        img: fiat.img,
+        coinName: fiat.name,
+        coinId: fiat.code,
+        avgPrice: fiatDto ? 1 / fiat.price : 0,
         user: { connect: { id: userId } },
       },
     });

@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Req,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query, UseGuards } from '@nestjs/common';
 import { DepositsService } from './deposits.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
@@ -18,15 +7,7 @@ import { PaginationResponseI } from 'src/general/interfaces/pagination/paginatio
 import { DepositsEnum } from 'src/general/enums/deposits.enum';
 import { OrderEnum } from 'src/general/enums/order.enum';
 import { AuthGuard } from '@nestjs/passport';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { DepositResponse } from 'src/general/swagger.responses/deposits.responses/deposit.response';
 import { GetAllDepositsResponse } from 'src/general/swagger.responses/deposits.responses/get.all.deposits.response';
 
@@ -40,10 +21,7 @@ export class DepositsController {
   @ApiCreatedResponse({ type: DepositResponse })
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(
-    @Body() createDepositDto: CreateDepositDto,
-    @Req() request: IRequest,
-  ): Promise<DepositResponse> {
+  create(@Body() createDepositDto: CreateDepositDto, @Req() request: IRequest): Promise<DepositResponse> {
     return this.depositsService.create(createDepositDto, request.user.id);
   }
 
@@ -63,14 +41,7 @@ export class DepositsController {
     @Query('order_by') orderBy: string = 'createdAt',
     @Query('order_direcrion') orderDirecrion: OrderEnum = OrderEnum.DESC,
   ): Promise<PaginationResponseI<Deposits>> {
-    return this.depositsService.findAll(
-      request.user.id,
-      +page,
-      +perPage,
-      status,
-      orderDirecrion,
-      orderBy,
-    );
+    return this.depositsService.findAll(request.user.id, +page, +perPage, status, orderDirecrion, orderBy);
   }
 
   @ApiBearerAuth()

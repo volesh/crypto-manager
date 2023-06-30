@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { FiatResponse } from '../fiat/fiat.response';
+import { Fiat } from '@prisma/client';
 export class CreateTransactionResponse {
   @ApiProperty({
     type: String,
@@ -32,7 +34,7 @@ export class CreateTransactionResponse {
 
   @ApiProperty({
     type: String,
-    example: 'usd',
+    example: 'USD',
   })
   fromCoinId: string;
 
@@ -65,4 +67,9 @@ export class CreateTransactionResponse {
     example: '2023-05-13T15:23:30.276Z',
   })
   createdAt: Date;
+
+  @ApiProperty({
+    type: FiatResponse,
+  })
+  currency: Fiat;
 }

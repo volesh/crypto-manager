@@ -1,13 +1,5 @@
 import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
-import {
-  Body,
-  Controller,
-  Post,
-  UseGuards,
-  Get,
-  Req,
-  Patch,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, Get, Req, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';

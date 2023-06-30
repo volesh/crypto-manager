@@ -1,24 +1,7 @@
-import {
-  ApiTags,
-  ApiBody,
-  ApiBearerAuth,
-  ApiCreatedResponse,
-  ApiResponse,
-  ApiQuery,
-  ApiParam,
-} from '@nestjs/swagger';
+import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
+import { ApiTags, ApiBody, ApiBearerAuth, ApiCreatedResponse, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto } from './dto/create.transaction.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -58,15 +41,7 @@ export class TransactionsController {
     @Query('coinId') coinId?: string,
     @Query('status') status?: TransactionStatusEnum,
   ): Promise<PaginationResponseI<Transactions>> {
-    return this.transactionsService.getTransactions(
-      request.user.id,
-      +page,
-      +perPage,
-      orderBy,
-      date,
-      coinId,
-      status,
-    );
+    return this.transactionsService.getTransactions(request.user.id, +page, +perPage, orderBy, date, coinId, status);
   }
 
   // Create transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -75,23 +50,17 @@ export class TransactionsController {
   @ApiCreatedResponse({ type: CreateTransactionResponse })
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  createTransaction(
-    @Body() transaction: CreateTransactionDto,
-    @Req() request: IRequest,
-  ): Promise<Transactions> {
-    return this.transactionsService.createTransaction(
-      transaction,
-      request.user.id,
-    );
+  createTransaction(@Body() transaction: CreateTransactionDto, @Req() request: IRequest): Promise<Transactions> {
+    return this.transactionsService.createTransaction(transaction, request.user.id);
   }
 
   // Delete Transactions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   @ApiBearerAuth()
-  @ApiResponse({ type: CreateTransactionResponse })
+  @ApiResponse({ type: Stringresponse })
   @ApiParam({ name: 'id', required: true, type: String })
   @UseGuards(AuthGuard('jwt'))
   @Delete('/:id')
-  deleteTransaction(@Param('id') id: string): Promise<Transactions> {
+  deleteTransaction(@Param('id') id: string): Promise<Stringresponse> {
     return this.transactionsService.deleteTransaction(id);
   }
 }
