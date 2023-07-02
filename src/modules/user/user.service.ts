@@ -89,12 +89,12 @@ export class UserService {
 
     // create new coins for user
     for (const coin of data.coins) {
-      await this.coinsService.createCoin(coin, id);
+      await this.coinsService.createCoin(coin, id, '1');
     }
 
     //Create fiat coin
     const promises = fiat.map((currency) => {
-      return this.coinsService.createFiat(currency, isUserExist.id);
+      return this.coinsService.createFiat(currency, id, '1');
     });
     await Promise.all(promises);
 

@@ -49,7 +49,7 @@ export class CoinsService {
   }
 
   // Create Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createCoin(coin: CreateCoinDto, userId: string): Promise<Coins> {
+  async createCoin(coin: CreateCoinDto, userId: string, walletId: string): Promise<Coins> {
     const isUserExist = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -70,6 +70,7 @@ export class CoinsService {
         type: CoinTypeEnum.Coin,
         img: selectedCoin.image,
         avgPrice,
+        wallet: { connect: { id: walletId } },
         user: { connect: { id: userId } },
       },
     });
@@ -132,7 +133,7 @@ export class CoinsService {
   }
 
   // Create fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createFiat(fiatDto: CreateFiatDto, userId: string): Promise<Coins> {
+  async createFiat(fiatDto: CreateFiatDto, userId: string, walletId): Promise<Coins> {
     const fiat = await this.prisma.fiat.findUnique({
       where: { code: fiatDto.code },
     });
@@ -148,6 +149,7 @@ export class CoinsService {
         img: fiat.img,
         coinName: fiat.name,
         coinId: fiat.code,
+        wallet: { connect: { id: walletId } },
         avgPrice: fiatDto ? 1 / fiat.price : 0,
         user: { connect: { id: userId } },
       },

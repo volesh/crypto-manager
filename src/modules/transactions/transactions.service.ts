@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Coins, Fiat, Prisma, Transactions, User } from '@prisma/client';
+import { Coins, Fiat, Prisma, Transactions } from '@prisma/client';
 import { currencyFileds } from 'src/general/configs';
 import { CoinTypeEnum, TransactionStatusEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
@@ -278,9 +278,9 @@ export class TransactionsService {
       throw new BadRequestException(`The user does not have enough ${transaction.fromId}`);
     }
     if (!toCoin && transaction.toCoinType === CoinTypeEnum.Fiat) {
-      toCoin = await this.coinsService.createFiat({ code: transaction.toId, amount: 0 }, userId);
+      toCoin = await this.coinsService.createFiat({ code: transaction.toId, amount: 0 }, userId, '1');
     } else if (!toCoin && transaction.toCoinType === CoinTypeEnum.Coin) {
-      toCoin = await this.coinsService.createCoin({ coinId: transaction.toId, amount: 0, spendMoney: 0 }, userId);
+      toCoin = await this.coinsService.createCoin({ coinId: transaction.toId, amount: 0, spendMoney: 0 }, userId, '1');
     }
     return this.genreateTransaction(transaction, fromCoin, toCoin, user);
   }

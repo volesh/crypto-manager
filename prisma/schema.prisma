@@ -38,6 +38,7 @@ model User {
   isInitialized Boolean        @default(false)
   currencyId    String         @default("c6280c4b-4a79-4e45-8291-84d31e1e5a72")
   currency      Fiat           @relation(fields: [currencyId], references: [id])
+  wallets       Wallets[]
   transactions  Transactions[]
   coins         Coins[]
   walletValues  WalletValues[]
@@ -60,6 +61,22 @@ model Transactions {
   purchse_price  Float    @default(0)
   status         Status
   createdAt      DateTime @default(now())
+  // wallet         Wallets  @relation(references: [id], fields: [walletId])
+  // walletId       String
+}
+
+model Wallets {
+  id          String     @id @default(uuid())
+  name        String
+  fixedIncome Float      @default(0)
+  invested    Float      @default(0)
+  withdraw    Float      @default(0)
+  userId      String
+  user        User       @relation(references: [id], fields: [userId])
+  coins       Coins[]
+  // transactions Transactions[]
+  deposits    Deposits[]
+  // walletValues WalletValues[]
 }
 
 model Coins {
@@ -74,8 +91,10 @@ model Coins {
   avgPrice         Float
   fromTransactions Transactions[] @relation("fromCoinRelation")
   toTransactions   Transactions[] @relation("toCoinRelation")
-  user             User           @relation(fields: [userId], references: [id])
+  user             User           @relation(references: [id], fields: [userId])
   userId           String
+  wallet           Wallets        @relation(references: [id], fields: [walletId])
+  walletId         String
 }
 
 model WalletValues {
@@ -84,6 +103,8 @@ model WalletValues {
   amount    Float
   user      User     @relation(fields: [userId], references: [id])
   userId    String
+  // wallet    Wallets  @relation(references: [id], fields: [walletId])
+  // walletId  String
 }
 
 model Tokens {
@@ -99,10 +120,12 @@ model Deposits {
   id        String        @id @default(uuid())
   createdAt DateTime      @default(now())
   amount    Float
-  currency  String        @default("usd")
+  code  String        @default("USD")
   status    DepositStatus
   user      User          @relation(fields: [userId], references: [id])
   userId    String
+  wallet    Wallets       @relation(fields: [walletId], references: [id])
+  walletId  String
 }
 
 model ActionTokens {

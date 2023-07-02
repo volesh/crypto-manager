@@ -17,7 +17,7 @@ CREATE TABLE "User" (
     "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isInitialized" BOOLEAN NOT NULL DEFAULT false,
-    "currencyId" TEXT NOT NULL,
+    "currencyId" TEXT NOT NULL DEFAULT 'c6280c4b-4a79-4e45-8291-84d31e1e5a72',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -35,8 +35,18 @@ CREATE TABLE "Transactions" (
     "purchse_price" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "status" "Status" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "walletId" TEXT NOT NULL,
 
     CONSTRAINT "Transactions_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Wallets" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "Wallets_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -51,6 +61,7 @@ CREATE TABLE "Coins" (
     "spendMoney" DOUBLE PRECISION NOT NULL,
     "avgPrice" DOUBLE PRECISION NOT NULL,
     "userId" TEXT NOT NULL,
+    "walletId" TEXT NOT NULL,
 
     CONSTRAINT "Coins_pkey" PRIMARY KEY ("id")
 );
@@ -61,6 +72,7 @@ CREATE TABLE "WalletValues" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "amount" DOUBLE PRECISION NOT NULL,
     "userId" TEXT NOT NULL,
+    "walletId" TEXT NOT NULL,
 
     CONSTRAINT "WalletValues_pkey" PRIMARY KEY ("id")
 );
@@ -84,6 +96,7 @@ CREATE TABLE "Deposits" (
     "currency" TEXT NOT NULL DEFAULT 'usd',
     "status" "DepositStatus" NOT NULL,
     "userId" TEXT NOT NULL,
+    "walletId" TEXT NOT NULL,
 
     CONSTRAINT "Deposits_pkey" PRIMARY KEY ("id")
 );
@@ -131,13 +144,28 @@ ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_toCoinId_fkey" FOREIGN K
 ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Transactions" ADD CONSTRAINT "Transactions_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Wallets" ADD CONSTRAINT "Wallets_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Coins" ADD CONSTRAINT "Coins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Coins" ADD CONSTRAINT "Coins_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "WalletValues" ADD CONSTRAINT "WalletValues_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WalletValues" ADD CONSTRAINT "WalletValues_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Tokens" ADD CONSTRAINT "Tokens_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Deposits" ADD CONSTRAINT "Deposits_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Deposits" ADD CONSTRAINT "Deposits_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

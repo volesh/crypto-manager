@@ -8,8 +8,8 @@ import { GetAllWalletValues } from 'src/general/swagger.responses/wallet.values.
 
 import { WalletValuesService } from './wallet-values.service';
 
-@ApiTags('wallet')
-@Controller('wallet')
+@ApiTags('wallet-values')
+@Controller('wallet-values')
 export class WalletValuesController {
   constructor(private readonly walletValuesService: WalletValuesService) {}
 

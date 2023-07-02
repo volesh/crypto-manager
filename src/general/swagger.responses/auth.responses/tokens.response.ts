@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TokenResponse {

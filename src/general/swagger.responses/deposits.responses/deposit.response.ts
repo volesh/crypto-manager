@@ -15,7 +15,7 @@ export class DepositResponse {
   amount: number;
 
   @ApiProperty({ type: String, example: 'UAH' })
-  currency: string;
+  code: string;
 
   @ApiProperty({ type: String, example: 'deposit' })
   status: DepositStatus;
@@ -25,4 +25,10 @@ export class DepositResponse {
     example: '8933087a-464f-4fe1-86a5-8eae613d7485',
   })
   userId: string;
+
+  @ApiProperty({
+    type: String,
+    example: '8933087a-464f-4fe1-86a5-8eae613d7485',
+  })
+  walletId: string;
 }

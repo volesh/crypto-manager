@@ -39,7 +39,7 @@ export class WalletValuesService {
     }
     const wallets = await this.prisma.walletValues.findMany({ where });
     const updatedWallets = wallets.map((wallet) => {
-      return CurrencyHelper.calculateCurrency(wallet, currencyFileds.wallet, user.currency);
+      return CurrencyHelper.calculateCurrency(wallet, currencyFileds.walletValue, user.currency);
     });
     return { data: updatedWallets, currency: user.currency };
   }
