@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Coins, Deposits, Prisma, User, Wallets } from '@prisma/client';
+import { Coins, Deposits, Prisma, Wallets } from '@prisma/client';
 import { DepositsEnum, OrderEnum } from 'src/general/enums';
 import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
 import { PrismaService } from 'src/prisma.service';
@@ -75,12 +75,12 @@ export class DepositsService {
   async remove(id: string): Promise<Deposits> {
     const deposit = await this.prisma.deposits.findUnique({
       where: { id },
-      include: { user: true },
+      include: { wallet: true },
     });
     if (!deposit) {
       throw new NotFoundException(`Deposit with id ${id} not found`);
     }
-    const fiat = await this.coinsService.getCoinByCoinId('usd', deposit.userId);
+    const fiat = await this.coinsService.getCoinByCoinId(deposit.code, deposit.walletId);
     if (!fiat) {
       throw new NotFoundException('Coin not found');
     }
@@ -89,18 +89,18 @@ export class DepositsService {
         throw new BadRequestException(`You can't delete this deposit bacause in your balanse less then deposit amount`);
       } else {
         await this.coinsService.updateCoin(fiat.amount - deposit.amount, 1, fiat.spendMoney - deposit.amount, fiat.id);
-        await this.prisma.user.update({
-          where: { id: deposit.userId },
-          data: { invested: deposit.user.invested - deposit.amount },
+        await this.prisma.wallets.update({
+          where: { id: deposit.walletId },
+          data: { invested: deposit.wallet.invested - deposit.amount },
         });
       }
     } else {
       await this.coinsService.updateCoin(fiat.amount + deposit.amount, 1, fiat.spendMoney + deposit.amount, fiat.id);
-      await this.prisma.user.update({
-        where: { id: deposit.userId },
+      await this.prisma.wallets.update({
+        where: { id: deposit.walletId },
         data: {
-          invested: deposit.user.invested + deposit.amount,
-          withdraw: deposit.user.withdraw - deposit.amount,
+          invested: deposit.wallet.invested + deposit.amount,
+          withdraw: deposit.wallet.withdraw - deposit.amount,
         },
       });
     }

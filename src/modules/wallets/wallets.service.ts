@@ -1,9 +1,12 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { currencyFileds } from 'src/general/configs';
+import { CoinTypeEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
 import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
 import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
+import { GetOneWalletI } from 'src/general/interfaces/wallets/getWalletById';
 import { PrismaService } from 'src/prisma.service';
+import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
 
 import { CoinsService } from '../coins/coins.service';
 import { UserService } from '../user/user.service';
@@ -55,6 +58,7 @@ export class WalletsService {
       throw new NotFoundException(`User with id: ${userId} not found`);
     }
     const wallets = await this.prisma.wallets.findMany({ where: { userId } });
+
     const updatedWallets = wallets.map((wallet) => {
       return CurrencyHelper.calculateCurrency(wallet, currencyFileds.wallet, user.currency);
     });
@@ -64,8 +68,26 @@ export class WalletsService {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wallet`;
+  async findOne(id: string): Promise<GetOneWalletI> {
+    const { user, ...wallet } = await this.prisma.wallets.findUnique({
+      where: { id },
+      include: { user: { include: { currency: true } } },
+    });
+    if (!wallet) {
+      throw new NotFoundException(`Wallet with id: ${id} not found`);
+    }
+    const { balance, notFixedIncome, fiat } = await this.calculateWalletBalance(id);
+    const walletForResponse = {
+      ...wallet,
+      balance: balance + fiat,
+      notFixedIncome,
+      fiat,
+      totalIncome: notFixedIncome + wallet.fixedIncome,
+    };
+    return {
+      wallet: CurrencyHelper.calculateCurrency(walletForResponse, currencyFileds.wallet, user.currency),
+      currency: user.currency,
+    };
   }
 
   update(id: number, updateWalletDto: UpdateWalletDto) {
@@ -94,5 +116,37 @@ export class WalletsService {
     }, invested);
 
     return invested;
+  }
+
+  async calculateWalletBalance(walletId: string) {
+    let balance = 0;
+    let notFixedIncome = 0;
+    let fiat = 0;
+    const coins = await this.coinsService.getWalletCoins(walletId);
+    if (!coins) {
+      return { balance, notFixedIncome };
+    }
+    const listOfCoinIdPromises = coins.map(async (coin) => {
+      if (coin.type !== CoinTypeEnum.Fiat) {
+        return coin.coinId;
+      } else {
+        const { price } = await this.prisma.fiat.findUnique({ where: { code: coin.coinId } });
+
+        fiat += coin.amount / price;
+      }
+    });
+    const listOfCoinId = await Promise.all(listOfCoinIdPromises);
+    const coinMarkets = await CoingeckoService.getCoinMarkest(listOfCoinId);
+    coins.forEach((coin) => {
+      const market = coinMarkets.find((item) => item.id === coin.coinId);
+      if (!market || coin.type === CoinTypeEnum.Fiat) {
+        return;
+      }
+      balance += market.current_price * coin.amount;
+      notFixedIncome += market.current_price * coin.amount - coin.spendMoney;
+    });
+    balance = +balance;
+    notFixedIncome = +notFixedIncome;
+    return { balance, notFixedIncome, fiat };
   }
 }

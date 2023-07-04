@@ -73,8 +73,9 @@ export class TransactionsService {
       );
     }
     if (transactionForDelete.income) {
-      const fixedIncome = transactionForDelete.user.fixedIncome - transactionForDelete.income;
-      await this.userService.updateUser({ fixedIncome }, transactionForDelete.user.email);
+      // const fixedIncome = transactionForDelete.user.fixedIncome - transactionForDelete.income;
+      const fixedIncome = 1 - transactionForDelete.income;
+      // await this.userService.updateUser({ fixedIncome }, transactionForDelete.user.email);
     }
     // Change from coin
     await this.updateCoinsAfterDelete(transactionForDelete.fromCoin, transactionForDelete.toCoin, transactionForDelete);
@@ -356,7 +357,7 @@ export class TransactionsService {
       }
       const fromAvg = fromAmount === 0 ? 0 : fromCoin.avgPrice;
       const income = transaction.toCount * toCoin.avgPrice - spendMoney;
-      await this.userService.updateUser({ fixedIncome: user.fixedIncome + income }, user.email);
+      // await this.userService.updateUser({ fixedIncome: user.fixedIncome + income }, user.email);
       await this.coinsService.updateCoin(fromAmount, fromAvg, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toCoin.avgPrice, toAmount * toCoin.avgPrice, toCoin.id);
       const createdTransaction = await this.saveTransaction({

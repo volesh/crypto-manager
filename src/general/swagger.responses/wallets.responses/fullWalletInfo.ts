@@ -1,26 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Fiat } from '@prisma/client';
 
-import { FiatResponse } from '../fiat/fiat.response';
-
-export class UserResponse {
+export class FullWalletInfo {
   @ApiProperty({
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
   })
   id: string;
 
-  @ApiProperty({
-    type: String,
-    example: 'Ivan',
-  })
+  @ApiProperty({ type: String, example: 'Binance' })
   name: string;
-
-  @ApiProperty({
-    type: String,
-    example: 'test@test.com',
-  })
-  email: string;
 
   @ApiProperty({
     type: Number,
@@ -30,22 +18,21 @@ export class UserResponse {
 
   @ApiProperty({
     type: Number,
-    example: 1000,
-    required: false,
-  })
-  fiat: number;
-
-  @ApiProperty({
-    type: Number,
-    example: 3000,
+    example: 500,
   })
   invested: number;
 
   @ApiProperty({
     type: Number,
-    example: 1100,
+    example: 1000,
   })
   withdraw: number;
+
+  @ApiProperty({
+    type: String,
+    example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
+  })
+  userId: string;
 
   @ApiProperty({
     type: Number,
@@ -66,11 +53,9 @@ export class UserResponse {
   totalIncome: number;
 
   @ApiProperty({
-    type: String,
-    example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
+    type: Number,
+    example: 1000,
+    required: false,
   })
-  currencyId: string;
-
-  @ApiProperty({ type: FiatResponse })
-  currency: Fiat;
+  fiat: number;
 }

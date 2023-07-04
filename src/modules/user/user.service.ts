@@ -9,7 +9,6 @@ import { PrismaService } from 'src/prisma.service';
 
 import { CoinsService } from '../coins/coins.service';
 import { CreateUserDto } from './dto/create.user.dto';
-import { InitUserDto } from './dto/init.data';
 
 @Injectable()
 export class UserService {
@@ -65,56 +64,6 @@ export class UserService {
     return { user: userForResponse, tokens };
   }
 
-  // Init Users Data !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async initUser(data: InitUserDto, id: string): Promise<GetUserI> {
-    const { fiat } = data;
-
-    // check is user exist
-    const isUserExist = await this.getUserByParam({ id });
-    if (!isUserExist) {
-      throw new NotFoundException(`User with id '${id}' not found`);
-    }
-    if (isUserExist.isInitialized) {
-      throw new BadRequestException('User already initialized');
-    }
-    // get invested money
-    const invested = await this.calculateInvested(data);
-
-    //update user
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: { invested, isInitialized: true },
-      include: { currency: true },
-    });
-
-    // create new coins for user
-    for (const coin of data.coins) {
-      await this.coinsService.createCoin(coin, id, '1');
-    }
-
-    //Create fiat coin
-    const promises = fiat.map((currency) => {
-      return this.coinsService.createFiat(currency, id, '1');
-    });
-    await Promise.all(promises);
-
-    // calculate balance and income
-    const { balance, notFixedIncome, fiat: receivedFiat } = await this.coinsService.calculateCryptoBalance(id);
-    //return data
-    const userForResponse = CurrencyHelper.calculateCurrency(
-      createUserPresenter(updatedUser),
-      currencyFileds.user,
-      updatedUser.currency,
-    );
-    return {
-      ...userForResponse,
-      balance: balance + receivedFiat,
-      fiat: receivedFiat,
-      notFixedIncome,
-      totalIncome: userForResponse.fixedIncome + notFixedIncome,
-    };
-  }
-
   // Get full User Info !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getFullUserInfo(where: Prisma.UserWhereUniqueInput): Promise<GetUserI> {
     if (where.email) {
@@ -125,6 +74,15 @@ export class UserService {
     if (!isUserExist) {
       throw new NotFoundException(`User not found`);
     }
+    const wallets = await this.prisma.wallets.findMany({ where: { userId: isUserExist.id } });
+    let invested = 0;
+    let fixedIncome = 0;
+    let withdraw = 0;
+    wallets.forEach((wallet) => {
+      invested += wallet.invested;
+      fixedIncome += wallet.fixedIncome;
+      withdraw += wallet.withdraw;
+    });
     // calculate balance and income
     const { balance, notFixedIncome, fiat } = await this.coinsService.calculateCryptoBalance(isUserExist.id);
     //return data
@@ -132,8 +90,11 @@ export class UserService {
       ...isUserExist,
       balance: balance + fiat,
       fiat: fiat,
-      notFixedIncome: notFixedIncome,
-      totalIncome: isUserExist.fixedIncome + notFixedIncome,
+      notFixedIncome,
+      totalIncome: fixedIncome + notFixedIncome,
+      invested,
+      withdraw,
+      fixedIncome,
     };
   }
 
@@ -155,27 +116,6 @@ export class UserService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
     return this.prisma.user.update({ where: { email }, data });
-  }
-
-  // Calculate invested money !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async calculateInvested(data: InitUserDto): Promise<number> {
-    let invested = 0;
-    const fiatCodes = data.fiat.map((fiat) => fiat.code);
-    if (fiatCodes.length > 0) {
-      const fiats = await this.prisma.fiat.findMany({
-        where: { code: { in: fiatCodes } },
-      });
-      invested = data.fiat.reduce((accum, fiat) => {
-        const fiatPrice = fiats.find((elem) => elem.code === fiat.code);
-        return (accum += fiat.amount / fiatPrice.price);
-      }, invested);
-    }
-
-    invested = data.coins.reduce((accum, coin) => {
-      return (accum += coin.spendMoney);
-    }, invested);
-
-    return invested;
   }
 
   validateEmail(email: string): string {

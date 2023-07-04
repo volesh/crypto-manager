@@ -4,8 +4,10 @@ import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
 import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
+import { GetOneWalletI } from 'src/general/interfaces/wallets/getWalletById';
 import { CreateWallet } from 'src/general/swagger.responses/wallets.responses/createWallet.response';
 import { WalletValues } from 'src/general/swagger.responses/wallets.responses/getAllWallets.response';
+import { GetOneWallet } from 'src/general/swagger.responses/wallets.responses/getOneWallet';
 
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
@@ -32,9 +34,12 @@ export class WalletsController {
     return this.walletsService.findAll(request.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.walletsService.findOne(+id);
+  @ApiResponse({ status: 200, type: GetOneWallet })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Get(':walletId')
+  findOne(@Param('walletId') walletId: string): Promise<GetOneWalletI> {
+    return this.walletsService.findOne(walletId);
   }
 
   @Patch(':id')

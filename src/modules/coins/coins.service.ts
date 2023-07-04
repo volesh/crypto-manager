@@ -77,8 +77,8 @@ export class CoinsService {
   }
 
   // Get Coin By Id !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getCoinByCoinId(coinId: string, userId: string): Promise<Coins> {
-    return this.prisma.coins.findFirst({ where: { coinId, userId } });
+  async getCoinByCoinId(coinId: string, walletId: string): Promise<Coins> {
+    return this.prisma.coins.findFirst({ where: { coinId, walletId } });
   }
 
   // Update Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -120,6 +120,11 @@ export class CoinsService {
     balance = +balance;
     notFixedIncome = +notFixedIncome;
     return { balance, notFixedIncome, fiat };
+  }
+
+  // Get Wallet Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getWalletCoins(walletId: string): Promise<Coins[]> {
+    return this.prisma.coins.findMany({ where: { walletId } });
   }
 
   // Get UserCoins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

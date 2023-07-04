@@ -29,6 +29,7 @@ export class AuthService {
     data.email = this.userService.validateEmail(data.email);
     data.password = data.password.trim();
     const user = await this.userService.getFullUserInfo({ email: data.email });
+
     if (!user) {
       throw new NotFoundException(`User with email "${data.email}" not Found`);
     }
