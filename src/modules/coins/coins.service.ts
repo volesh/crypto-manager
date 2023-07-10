@@ -14,9 +14,10 @@ import { CreateFiatDto } from './dto/create.fiat.dto';
 export class CoinsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Get Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getCoins(
+  // Get Coins By Wallet !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getCoinsByWallet(
     userId: string,
+    walletId: string,
     page: number,
     perPage: number,
     orderBy: string,
@@ -24,12 +25,12 @@ export class CoinsService {
     coinId: string,
   ): Promise<PaginationResponseI<Coins>> {
     const skip = (page - 1) * perPage;
-    const where = this.generateWhere(userId, coinId);
+    const where = this.generateWhere(walletId, null, coinId);
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { currency: true } });
-    const totalTransactions = await this.prisma.coins.count({
+    const totalCoins = await this.prisma.coins.count({
       where,
     });
-    const totalPages = Math.ceil(totalTransactions / perPage);
+    const totalPages = Math.ceil(totalCoins / perPage);
     const coins = await this.prisma.coins.findMany({
       where,
       skip,
@@ -44,6 +45,55 @@ export class CoinsService {
       totalPages,
       perPage,
       data: updatedCoins,
+      currency: user.currency,
+    };
+  }
+
+  // Get Coin By User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getAllUsersCoins(
+    userId: string,
+    page: number,
+    perPage: number,
+    // orderBy: string,
+    // orderDirecrion: OrderEnum,
+    // coinId: string,
+  ): Promise<PaginationResponseI<Coins>> {
+    const skip = (page - 1) * perPage;
+    // const where = this.generateWhere(null, userId, null);
+    const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { currency: true } });
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+    const uniqueCoins = await this.prisma.coins.groupBy({
+      by: ['coinId'],
+      where: { userId },
+      _count: true,
+    });
+    const totalPages = Math.ceil(uniqueCoins.length / perPage);
+    const coinsIds = uniqueCoins.slice(skip, skip + perPage).map((elem) => elem.coinId);
+    const arrayOfCoins = await this.prisma.coins.findMany({
+      where: { userId, coinId: { in: coinsIds } },
+    });
+    const response: Coins[] = [];
+    arrayOfCoins.forEach((coin) => {
+      const elem = response.find((elem) => elem.coinId === coin.coinId);
+      if (elem) {
+        elem.spendMoney += coin.spendMoney;
+        elem.amount += coin.amount;
+        elem.avgPrice = elem.spendMoney / elem.amount;
+      } else {
+        coin.walletId = null;
+        response.push(coin);
+      }
+    });
+    const updatedCoins = response.map((coin) => {
+      return CurrencyHelper.calculateCurrency(coin, currencyFileds.coin, user.currency);
+    });
+    return {
+      data: updatedCoins,
+      page,
+      perPage,
+      totalPages,
       currency: user.currency,
     };
   }
@@ -77,7 +127,7 @@ export class CoinsService {
   }
 
   // Get Coin By Id !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getCoinByCoinId(coinId: string, walletId: string): Promise<Coins> {
+  async getCoinByCoinId(coinId: string, walletId?: string): Promise<Coins> {
     return this.prisma.coins.findFirst({ where: { coinId, walletId } });
   }
 
@@ -162,15 +212,18 @@ export class CoinsService {
   }
 
   // Generate Where !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  generateWhere(userId: string, coinId: string): Prisma.CoinsWhereInput {
+  generateWhere(walletId: string, userId: string, coinId: string): Prisma.CoinsWhereInput {
     const whereArr = [];
-    whereArr.push({ userId });
+    whereArr.push({ walletId });
     if (coinId) {
       whereArr.push({ coinId });
+    }
+    if (userId) {
+      whereArr.push({ userId });
     }
     if (whereArr.length > 1) {
       return { AND: whereArr };
     }
-    return { userId };
+    return whereArr[0];
   }
 }

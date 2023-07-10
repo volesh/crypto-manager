@@ -15,6 +15,7 @@ import { TransactionsModule } from '../transactions/transactions.module';
 import { UserModule } from '../user/user.module';
 import { WalletValuesModule } from '../wallet-values/wallet-values.module';
 import { WalletsModule } from '../wallets/wallets.module';
+// import { ExchangeService } from 'src/services/coingecko/exchange.service';
 
 @Module({
   imports: [

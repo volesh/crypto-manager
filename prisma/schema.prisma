@@ -57,21 +57,21 @@ model Transactions {
   purchse_price  Float    @default(0)
   status         Status
   createdAt      DateTime @default(now())
-  // wallet         Wallets  @relation(references: [id], fields: [walletId])
-  // walletId       String
+  wallet         Wallets  @relation(references: [id], fields: [walletId])
+  walletId       String
 }
 
 model Wallets {
-  id          String     @id @default(uuid())
-  name        String
-  fixedIncome Float      @default(0)
-  invested    Float      @default(0)
-  withdraw    Float      @default(0)
-  userId      String
-  user        User       @relation(references: [id], fields: [userId])
-  coins       Coins[]
-  // transactions Transactions[]
-  deposits    Deposits[]
+  id           String         @id @default(uuid())
+  name         String
+  fixedIncome  Float          @default(0)
+  invested     Float          @default(0)
+  withdraw     Float          @default(0)
+  userId       String
+  user         User           @relation(references: [id], fields: [userId])
+  coins        Coins[]
+  transactions Transactions[]
+  deposits     Deposits[]
   // walletValues WalletValues[]
 }
 

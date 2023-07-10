@@ -31,6 +31,7 @@ export class TransactionsController {
   @ApiQuery({ name: 'order_by', required: false })
   @ApiQuery({ name: 'coinId', required: false })
   @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'walletId', required: false })
   @UseGuards(AuthGuard('jwt'))
   @Get()
   getTransactions(
@@ -41,8 +42,9 @@ export class TransactionsController {
     @Query('date') date?: string,
     @Query('coinId') coinId?: string,
     @Query('status') status?: TransactionStatusEnum,
+    @Query('walletId') walletId?: string,
   ): Promise<PaginationResponseI<Transactions>> {
-    return this.transactionsService.getTransactions(request.user.id, +page, +perPage, orderBy, date, coinId, status);
+    return this.transactionsService.getTransactions(request.user.id, walletId, +page, +perPage, orderBy, date, coinId, status);
   }
 
   // Create transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

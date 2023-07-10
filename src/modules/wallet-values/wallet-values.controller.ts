@@ -14,7 +14,7 @@ export class WalletValuesController {
   constructor(private readonly walletValuesService: WalletValuesService) {}
 
   // Get All !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  @ApiResponse({ status: 200, type: [GetAllWalletValues] })
+  @ApiResponse({ status: 200, type: GetAllWalletValues })
   @ApiResponse({ status: 400, type: ErrorResponse })
   @ApiQuery({
     name: 'from-date',

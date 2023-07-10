@@ -27,4 +27,9 @@ export class CreateTransactionDto {
   @IsNotEmpty()
   @ApiProperty({ type: String, example: 'coin' })
   toCoinType: CoinTypeEnum;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '8b666860-7ebf-4f5a-a512-9897ac38682e' })
+  walletId: string;
 }

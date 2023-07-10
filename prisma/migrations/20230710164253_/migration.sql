@@ -13,10 +13,6 @@ CREATE TABLE "User" (
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "fixedIncome" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "isInitialized" BOOLEAN NOT NULL DEFAULT false,
     "currencyId" TEXT NOT NULL DEFAULT 'c6280c4b-4a79-4e45-8291-84d31e1e5a72',
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
@@ -44,6 +40,9 @@ CREATE TABLE "Transactions" (
 CREATE TABLE "Wallets" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "fixedIncome" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "invested" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "withdraw" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "userId" TEXT NOT NULL,
 
     CONSTRAINT "Wallets_pkey" PRIMARY KEY ("id")
@@ -72,7 +71,6 @@ CREATE TABLE "WalletValues" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "amount" DOUBLE PRECISION NOT NULL,
     "userId" TEXT NOT NULL,
-    "walletId" TEXT NOT NULL,
 
     CONSTRAINT "WalletValues_pkey" PRIMARY KEY ("id")
 );
@@ -93,7 +91,7 @@ CREATE TABLE "Deposits" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "amount" DOUBLE PRECISION NOT NULL,
-    "currency" TEXT NOT NULL DEFAULT 'usd',
+    "code" TEXT NOT NULL DEFAULT 'USD',
     "status" "DepositStatus" NOT NULL,
     "userId" TEXT NOT NULL,
     "walletId" TEXT NOT NULL,
@@ -157,9 +155,6 @@ ALTER TABLE "Coins" ADD CONSTRAINT "Coins_walletId_fkey" FOREIGN KEY ("walletId"
 
 -- AddForeignKey
 ALTER TABLE "WalletValues" ADD CONSTRAINT "WalletValues_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "WalletValues" ADD CONSTRAINT "WalletValues_walletId_fkey" FOREIGN KEY ("walletId") REFERENCES "Wallets"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Tokens" ADD CONSTRAINT "Tokens_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

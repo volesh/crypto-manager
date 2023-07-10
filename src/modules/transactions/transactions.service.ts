@@ -23,6 +23,7 @@ export class TransactionsService {
   // Get Transactions !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getTransactions(
     userId: string,
+    walletId: string,
     page: number,
     perPage: number,
     orderBy: string,
@@ -31,7 +32,7 @@ export class TransactionsService {
     status: TransactionStatusEnum,
   ): Promise<PaginationResponseI<Transactions>> {
     const skip = (page - 1) * perPage;
-    const where = this.generateWhere(date, userId, coinId, status);
+    const where = this.generateWhere(date, null, walletId, coinId, status);
     const user = await this.userService.getOneUser(userId);
     const fiat = await this.prisma.fiat.findUnique({ where: { id: user.currencyId } });
     const totalTransactions = await this.prisma.transactions.count({
@@ -62,7 +63,7 @@ export class TransactionsService {
   async deleteTransaction(id: string): Promise<StringresponseI> {
     const transactionForDelete = await this.prisma.transactions.findUnique({
       where: { id },
-      include: { fromCoin: true, toCoin: true, user: true },
+      include: { fromCoin: true, toCoin: true, user: true, wallet: true },
     });
     if (!transactionForDelete) {
       throw new NotFoundException(`Transaction with id: ${id} not found`);
@@ -73,8 +74,9 @@ export class TransactionsService {
       );
     }
     if (transactionForDelete.income) {
-      // const fixedIncome = transactionForDelete.user.fixedIncome - transactionForDelete.income;
-      const fixedIncome = 1 - transactionForDelete.income;
+      const fixedIncome = transactionForDelete.wallet.fixedIncome - transactionForDelete.income;
+      await this.prisma.wallets.update({ where: { id }, data: { fixedIncome } });
+      // const fixedIncome = 1 - transactionForDelete.income;
       // await this.userService.updateUser({ fixedIncome }, transactionForDelete.user.email);
     }
     // Change from coin
@@ -224,7 +226,13 @@ export class TransactionsService {
   }
 
   // Generate Where !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  generateWhere(date: string, userId: string, coinId: string, status: TransactionStatusEnum): Prisma.UserWhereInput {
+  generateWhere(
+    date: string,
+    userId: string,
+    walletId: string,
+    coinId: string,
+    status: TransactionStatusEnum,
+  ): Prisma.UserWhereInput {
     const whereArr = [];
     if (date) {
       const fromDate = new Date(`${date}T00:00:00.000Z`);
@@ -246,8 +254,13 @@ export class TransactionsService {
       };
       whereArr.push(whereCoin);
     }
+    if (walletId) {
+      whereArr.push({ walletId });
+    }
 
-    whereArr.push({ userId });
+    if (userId) {
+      whereArr.push({ userId });
+    }
 
     if (whereArr.length > 1) {
       return { AND: whereArr };
@@ -273,15 +286,19 @@ export class TransactionsService {
     if (!user) {
       throw new NotFoundException(`User not found`);
     }
-    const fromCoin = await this.coinsService.getCoinByCoinId(transaction.fromId, userId);
-    let toCoin = await this.coinsService.getCoinByCoinId(transaction.toId, userId);
+    const fromCoin = await this.coinsService.getCoinByCoinId(transaction.fromId, transaction.walletId);
+    let toCoin = await this.coinsService.getCoinByCoinId(transaction.toId, transaction.walletId);
     if (!fromCoin || fromCoin.amount < transaction.fromCount) {
       throw new BadRequestException(`The user does not have enough ${transaction.fromId}`);
     }
     if (!toCoin && transaction.toCoinType === CoinTypeEnum.Fiat) {
-      toCoin = await this.coinsService.createFiat({ code: transaction.toId, amount: 0 }, userId, '1');
+      toCoin = await this.coinsService.createFiat({ code: transaction.toId, amount: 0 }, userId, transaction.walletId);
     } else if (!toCoin && transaction.toCoinType === CoinTypeEnum.Coin) {
-      toCoin = await this.coinsService.createCoin({ coinId: transaction.toId, amount: 0, spendMoney: 0 }, userId, '1');
+      toCoin = await this.coinsService.createCoin(
+        { coinId: transaction.toId, amount: 0, spendMoney: 0 },
+        userId,
+        transaction.walletId,
+      );
     }
     return this.genreateTransaction(transaction, fromCoin, toCoin, user);
   }
@@ -297,6 +314,7 @@ export class TransactionsService {
     const spendMoney = transaction.fromCount * fromCoin.avgPrice;
     const fromAmount = fromCoin.amount - transaction.fromCount;
     const toAmount = toCoin.amount + transaction.toCount;
+    const wallet = await this.prisma.wallets.findUnique({ where: { id: transaction.walletId } });
     let fromSpendMoney = fromCoin.spendMoney - spendMoney;
     if (fromSpendMoney < 0.01) fromSpendMoney = 0;
 
@@ -318,6 +336,7 @@ export class TransactionsService {
         user: { connect: { id: user.id } },
         purchse_price,
         status: TransactionStatusEnum.Transfer,
+        wallet: { connect: { id: transaction.walletId } },
       });
       const transformedTransaction = CurrencyHelper.calculateCurrency(
         createdTransaction,
@@ -340,6 +359,7 @@ export class TransactionsService {
         user: { connect: { id: user.id } },
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
         status: TransactionStatusEnum.Transfer,
+        wallet: { connect: { id: transaction.walletId } },
       });
 
       const transformedTransaction = CurrencyHelper.calculateCurrency(
@@ -357,7 +377,11 @@ export class TransactionsService {
       }
       const fromAvg = fromAmount === 0 ? 0 : fromCoin.avgPrice;
       const income = transaction.toCount * toCoin.avgPrice - spendMoney;
-      // await this.userService.updateUser({ fixedIncome: user.fixedIncome + income }, user.email);
+
+      await this.prisma.wallets.update({
+        where: { id: transaction.walletId },
+        data: { fixedIncome: wallet.fixedIncome + income },
+      });
       await this.coinsService.updateCoin(fromAmount, fromAvg, fromSpendMoney, fromCoin.id);
       await this.coinsService.updateCoin(toAmount, toCoin.avgPrice, toAmount * toCoin.avgPrice, toCoin.id);
       const createdTransaction = await this.saveTransaction({
@@ -369,6 +393,7 @@ export class TransactionsService {
         income,
         user: { connect: { id: user.id } },
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
+        wallet: { connect: { id: transaction.walletId } },
         status: TransactionStatusEnum.Sell,
       });
 
@@ -397,6 +422,7 @@ export class TransactionsService {
         user: { connect: { id: user.id } },
         purchse_price: transaction.fromCount * fromCoin.avgPrice,
         status: TransactionStatusEnum.Buy,
+        wallet: { connect: { id: transaction.walletId } },
       });
 
       const transformedTransaction = CurrencyHelper.calculateCurrency(
