@@ -75,7 +75,7 @@ export class TransactionsService {
     }
     if (transactionForDelete.income) {
       const fixedIncome = transactionForDelete.wallet.fixedIncome - transactionForDelete.income;
-      await this.prisma.wallets.update({ where: { id }, data: { fixedIncome } });
+      await this.prisma.wallets.update({ where: { id: transactionForDelete.walletId }, data: { fixedIncome } });
       // const fixedIncome = 1 - transactionForDelete.income;
       // await this.userService.updateUser({ fixedIncome }, transactionForDelete.user.email);
     }
