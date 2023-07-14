@@ -3,7 +3,7 @@ import { Fiat } from '@prisma/client';
 
 import { FiatResponse } from '../fiat/fiat.response';
 
-class WalletValues {
+class DailyValue {
   @ApiProperty({
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
@@ -14,7 +14,7 @@ class WalletValues {
     type: Date,
     example: '2023-05-13T10:08:11.553Z',
   })
-  crearedAte: Date;
+  crearedAt: Date;
 
   @ApiProperty({
     type: Number,
@@ -27,13 +27,20 @@ class WalletValues {
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
   })
   userId: string;
+
+  @ApiProperty({
+    type: String,
+    example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
+    required: false,
+  })
+  walletId?: string;
 }
 
 export class GetAllWalletValues {
   @ApiProperty({
-    type: [WalletValues],
+    type: [DailyValue],
   })
-  data: WalletValues;
+  data: DailyValue;
 
   @ApiProperty({
     type: FiatResponse,

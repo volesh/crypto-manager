@@ -28,18 +28,19 @@ enum DepositStatus {
 }
 
 model User {
-  id           String         @id @default(uuid())
-  name         String
-  email        String         @unique
-  password     String
-  currencyId   String         @default("c6280c4b-4a79-4e45-8291-84d31e1e5a72")
-  currency     Fiat           @relation(fields: [currencyId], references: [id])
-  wallets      Wallets[]
-  transactions Transactions[]
-  coins        Coins[]
-  walletValues WalletValues[]
-  tokens       Tokens[]
-  deposits     Deposits[]
+  id            String          @id @default(uuid())
+  name          String
+  email         String          @unique
+  password      String
+  currencyId    String          @default("c6280c4b-4a79-4e45-8291-84d31e1e5a72")
+  currency      Fiat            @relation(fields: [currencyId], references: [id])
+  wallets       Wallets[]
+  transactions  Transactions[]
+  coins         Coins[]
+  walletValues  WalletValues[]
+  accountValues AccountValues[]
+  tokens        Tokens[]
+  deposits      Deposits[]
 }
 
 model Transactions {
@@ -72,7 +73,7 @@ model Wallets {
   coins        Coins[]
   transactions Transactions[]
   deposits     Deposits[]
-  // walletValues WalletValues[]
+  walletValues WalletValues[]
 }
 
 model Coins {
@@ -99,8 +100,16 @@ model WalletValues {
   amount    Float
   user      User     @relation(fields: [userId], references: [id])
   userId    String
-  // wallet    Wallets  @relation(references: [id], fields: [walletId])
-  // walletId  String
+  wallet    Wallets  @relation(references: [id], fields: [walletId])
+  walletId  String
+}
+
+model AccountValues {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  amount    Float
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
 }
 
 model Tokens {

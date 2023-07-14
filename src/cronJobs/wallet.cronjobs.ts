@@ -12,12 +12,12 @@ export class WalletSchedule {
     const users = await this.prisma.user.findMany({ select: { id: true } });
     for (const user of users) {
       const { balance, fiat } = await this.coinsService.calculateCryptoBalance(user.id);
-      await this.prisma.walletValues.create({
-        data: {
-          amount: balance + fiat,
-          user: { connect: { id: user.id } },
-        },
-      });
+      // await this.prisma.walletValues.create({
+      //   data: {
+      //     amount: balance + fiat,
+      //     user: { connect: { id: user.id } },
+      //   },
+      // });
     }
     console.log('Wallet value set');
   }

@@ -10,10 +10,10 @@ import { PrismaService } from 'src/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 import { CoinsModule } from '../coins/coins.module';
 import { CoinsService } from '../coins/coins.service';
+import { WalletValuesModule } from '../daily-volume/daily-volume.module';
 import { DepositsModule } from '../deposits/deposits.module';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { UserModule } from '../user/user.module';
-import { WalletValuesModule } from '../wallet-values/wallet-values.module';
 import { WalletsModule } from '../wallets/wallets.module';
 // import { ExchangeService } from 'src/services/coingecko/exchange.service';
 

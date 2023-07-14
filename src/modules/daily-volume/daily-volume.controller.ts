@@ -1,15 +1,16 @@
 import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { Fiat, WalletValues } from '@prisma/client';
+import type { Fiat } from '@prisma/client';
+import { AccountValuesI } from 'src/general/interfaces/account-values/daily.volume.interface';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
+import { GetAllWalletValues } from 'src/general/swagger.responses/daily.volume.responses/get.all.response';
 import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
-import { GetAllWalletValues } from 'src/general/swagger.responses/wallet.values.responses/get.all.response';
 
-import { WalletValuesService } from './wallet-values.service';
+import { WalletValuesService } from './daily-volume.service';
 
-@ApiTags('wallet-values')
-@Controller('wallet-values')
+@ApiTags('dailyVolume')
+@Controller('dailyVolume')
 export class WalletValuesController {
   constructor(private readonly walletValuesService: WalletValuesService) {}
 
@@ -28,6 +29,11 @@ export class WalletValuesController {
     type: String,
     description: 'Format should be yyyy-mm-dd',
   })
+  @ApiQuery({
+    name: 'walletId',
+    required: false,
+    type: String,
+  })
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @Get()
@@ -35,7 +41,8 @@ export class WalletValuesController {
     @Req() request: IRequest,
     @Query('from-date') fromDate?: string,
     @Query('to-date') toDate?: string,
-  ): Promise<{ data: WalletValues[]; currency: Fiat }> {
-    return this.walletValuesService.findAll(request.user.id, fromDate, toDate);
+    @Query('walletId') walletId?: string,
+  ): Promise<{ data: AccountValuesI[]; currency: Fiat }> {
+    return this.walletValuesService.findAll(request.user.id, fromDate, toDate, walletId);
   }
 }
