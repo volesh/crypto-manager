@@ -10,6 +10,6 @@ import { WalletsService } from './wallets.service';
 
 @Module({
   controllers: [WalletsController],
-  providers: [WalletsService, PrismaService, JwtService, UserService, CoinsService, TokensHelper],
+  providers: [WalletsService, PrismaService, JwtService, UserService, CoinsService, TokensHelper, UserService],
 })
 export class WalletsModule {}

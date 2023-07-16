@@ -1,6 +1,6 @@
 export interface AccountValuesI {
   id: string;
-  createdAt: Date;
+  date: string;
   amount: number;
   userId: string;
   walletId?: string;

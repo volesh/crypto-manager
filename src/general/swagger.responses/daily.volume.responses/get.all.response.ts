@@ -12,9 +12,9 @@ class DailyValue {
 
   @ApiProperty({
     type: Date,
-    example: '2023-05-13T10:08:11.553Z',
+    example: '2023-05-13',
   })
-  crearedAt: Date;
+  date: string;
 
   @ApiProperty({
     type: Number,

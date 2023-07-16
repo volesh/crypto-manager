@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import * as moment from 'moment';
 import { WalletsService } from 'src/modules/wallets/wallets.service';
 import { PrismaService } from 'src/prisma.service';
 
@@ -9,6 +10,8 @@ export class WalletSchedule {
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async removeExpiredTokens() {
+    const date = moment().format('YYYY-MM-DD');
+    const timestamp = new Date().getTime();
     const users = await this.prisma.user.findMany({ select: { id: true, wallets: { select: { id: true } } } });
     for (const user of users) {
       const promises = [];
@@ -21,6 +24,8 @@ export class WalletSchedule {
             amount: walletBalance + walletFiat,
             user: { connect: { id: user.id } },
             wallet: { connect: { id: wallet.id } },
+            date,
+            timestamp,
           },
         });
         promises.push(promise);
@@ -30,6 +35,8 @@ export class WalletSchedule {
         data: {
           amount: accountAmount,
           user: { connect: { id: user.id } },
+          date,
+          timestamp,
         },
       });
     }

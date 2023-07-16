@@ -96,7 +96,8 @@ model Coins {
 
 model WalletValues {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
+  timestamp BigInt
+  date      String
   amount    Float
   user      User     @relation(fields: [userId], references: [id])
   userId    String
@@ -106,7 +107,8 @@ model WalletValues {
 
 model AccountValues {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
+  date      String
+  timestamp BigInt
   amount    Float
   user      User     @relation(fields: [userId], references: [id])
   userId    String
