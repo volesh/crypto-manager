@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatResponse } from '../fiat/fiat.response';
 import { Fiat } from '@prisma/client';
+
+import { FiatResponse } from '../fiat/fiat.response';
+
 export class CreateTransactionResponse {
   @ApiProperty({
     type: String,

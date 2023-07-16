@@ -9,7 +9,6 @@ export interface GetUserI {
   invested: number;
   withdraw: number;
   balance: number;
-  isInitialized: boolean;
   notFixedIncome: number;
   totalIncome: number;
   password?: string;

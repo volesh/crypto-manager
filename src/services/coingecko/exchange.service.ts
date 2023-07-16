@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { envConfig } from 'src/general/configs/envConfig';
+import { envConfig } from 'src/general/configs';
 import { ExchangeResponseI } from 'src/general/interfaces/exhange/exchange.response.interface';
 
 export const axiosService = axios.create({

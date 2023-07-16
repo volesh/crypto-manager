@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { FiatResponse } from '../fiat/fiat.response';
 import { Fiat } from '@prisma/client';
 
-class WalletValues {
+import { FiatResponse } from '../fiat/fiat.response';
+
+class DailyValue {
   @ApiProperty({
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
@@ -11,9 +12,9 @@ class WalletValues {
 
   @ApiProperty({
     type: Date,
-    example: '2023-05-13T10:08:11.553Z',
+    example: '2023-05-13',
   })
-  crearedAte: Date;
+  date: string;
 
   @ApiProperty({
     type: Number,
@@ -26,13 +27,20 @@ class WalletValues {
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
   })
   userId: string;
+
+  @ApiProperty({
+    type: String,
+    example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
+    required: false,
+  })
+  walletId?: string;
 }
 
 export class GetAllWalletValues {
   @ApiProperty({
-    type: [WalletValues],
+    type: [DailyValue],
   })
-  data: WalletValues;
+  data: DailyValue;
 
   @ApiProperty({
     type: FiatResponse,

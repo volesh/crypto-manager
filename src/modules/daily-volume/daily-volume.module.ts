@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { WalletValuesService } from './wallet-values.service';
-import { WalletValuesController } from './wallet-values.controller';
 import { PrismaService } from 'src/prisma.service';
+
+import { WalletValuesController } from './daily-volume.controller';
+import { WalletValuesService } from './daily-volume.service';
 
 @Module({
   controllers: [WalletValuesController],

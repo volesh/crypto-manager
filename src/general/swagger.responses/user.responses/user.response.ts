@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Fiat } from '@prisma/client';
+
 import { FiatResponse } from '../fiat/fiat.response';
+
 export class UserResponse {
   @ApiProperty({
     type: String,
@@ -44,12 +46,6 @@ export class UserResponse {
     example: 1100,
   })
   withdraw: number;
-
-  @ApiProperty({
-    type: Boolean,
-    example: true,
-  })
-  isInitialized: boolean;
 
   @ApiProperty({
     type: Number,

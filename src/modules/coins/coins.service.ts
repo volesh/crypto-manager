@@ -1,41 +1,88 @@
-import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { CreateCoinDto } from './dto/create.coin.dto';
-import { PrismaService } from 'src/prisma.service';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Coins, Fiat, Prisma } from '@prisma/client';
-import { OrderEnum } from 'src/general/enums/order.enum';
+import { currencyFileds } from 'src/general/configs';
+import { CoinTypeEnum, FieldsForSort, OrderEnum } from 'src/general/enums';
+import { CurrencyHelper } from 'src/general/helpers';
+import { PrismaService } from 'src/prisma.service';
 import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
+
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
+import { CreateCoinDto } from './dto/create.coin.dto';
 import { CreateFiatDto } from './dto/create.fiat.dto';
-import { CoinTypeEnum } from 'src/general/enums/coins.type.enum';
-import { CurrencyHelper } from 'src/general/helpers/currency.helper';
-import { currencyFileds } from 'src/general/configs/currency.fields';
 
 @Injectable()
 export class CoinsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // Get Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // Get Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getCoins(
     userId: string,
+    walletId: string,
     page: number,
     perPage: number,
-    orderBy: string,
-    orderDirecrion: OrderEnum,
+    orderBy: FieldsForSort,
+    orderDirection: OrderEnum,
     coinId: string,
   ): Promise<PaginationResponseI<Coins>> {
     const skip = (page - 1) * perPage;
-    const where = this.generateWhere(userId, coinId);
+    let coins: Coins[] = [];
+    let totalPages = 0;
     const user = await this.prisma.user.findUnique({ where: { id: userId }, include: { currency: true } });
-    const totalTransactions = await this.prisma.coins.count({
-      where,
-    });
-    const totalPages = Math.ceil(totalTransactions / perPage);
-    const coins = await this.prisma.coins.findMany({
-      where,
-      skip,
-      take: perPage,
-      orderBy: { [orderBy]: orderDirecrion },
-    });
+    if (walletId) {
+      const where = this.generateWhere(walletId, null, coinId);
+      const totalCoins = await this.prisma.coins.count({
+        where,
+      });
+      totalPages = Math.ceil(totalCoins / perPage);
+      coins = await this.prisma.coins.findMany({
+        where,
+        skip,
+        take: perPage,
+        orderBy: { [orderBy]: orderDirection },
+      });
+    } else {
+      const where = this.generateWhere(null, userId, coinId);
+      const uniqueCoins = await this.prisma.coins.groupBy({
+        by: ['coinId'],
+        where,
+        _count: true,
+        _sum: {
+          amount: true,
+          spendMoney: true,
+        },
+      });
+      totalPages = Math.ceil(uniqueCoins.length / perPage);
+
+      const sorted =
+        orderDirection === OrderEnum.ASC
+          ? [...uniqueCoins].sort((a, b) => a[orderBy] - b[orderBy])
+          : [...uniqueCoins].sort((a, b) => b[orderBy] - a[orderBy]);
+      const coinsIds = sorted.slice(skip, skip + perPage).map((elem) => elem.coinId);
+
+      let arrayOfCoins = await this.prisma.coins.findMany({
+        where: {
+          userId,
+          coinId: { in: coinsIds },
+        },
+      });
+      arrayOfCoins =
+        orderDirection === OrderEnum.ASC
+          ? [...arrayOfCoins].sort((a, b) => a[orderBy] - b[orderBy])
+          : [...arrayOfCoins].sort((a, b) => b[orderBy] - a[orderBy]);
+
+      arrayOfCoins.forEach((coin) => {
+        const elem = coins.find((elem) => elem.coinId === coin.coinId);
+        if (elem) {
+          elem.spendMoney += coin.spendMoney;
+          elem.amount += coin.amount;
+          elem.avgPrice = elem.spendMoney / elem.amount;
+        } else {
+          coin.walletId = null;
+          coins.push(coin);
+        }
+      });
+    }
+
     const updatedCoins = coins.map((coin) => {
       return CurrencyHelper.calculateCurrency(coin, currencyFileds.coin, user.currency);
     });
@@ -49,7 +96,7 @@ export class CoinsService {
   }
 
   // Create Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createCoin(coin: CreateCoinDto, userId: string): Promise<Coins> {
+  async createCoin(coin: CreateCoinDto, userId: string, walletId: string): Promise<Coins> {
     const isUserExist = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -70,14 +117,15 @@ export class CoinsService {
         type: CoinTypeEnum.Coin,
         img: selectedCoin.image,
         avgPrice,
+        wallet: { connect: { id: walletId } },
         user: { connect: { id: userId } },
       },
     });
   }
 
   // Get Coin By Id !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getCoinByCoinId(coinId: string, userId: string): Promise<Coins> {
-    return this.prisma.coins.findFirst({ where: { coinId, userId } });
+  async getCoinByCoinId(coinId: string, walletId?: string): Promise<Coins> {
+    return this.prisma.coins.findFirst({ where: { coinId, walletId } });
   }
 
   // Update Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -121,6 +169,11 @@ export class CoinsService {
     return { balance, notFixedIncome, fiat };
   }
 
+  // Get Wallet Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async getWalletCoins(walletId: string): Promise<Coins[]> {
+    return this.prisma.coins.findMany({ where: { walletId } });
+  }
+
   // Get UserCoins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async getUsersCoins(userId: string): Promise<Coins[]> {
     return this.prisma.coins.findMany({ where: { userId } });
@@ -132,7 +185,7 @@ export class CoinsService {
   }
 
   // Create fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createFiat(fiatDto: CreateFiatDto, userId: string): Promise<Coins> {
+  async createFiat(fiatDto: CreateFiatDto, userId: string, walletId): Promise<Coins> {
     const fiat = await this.prisma.fiat.findUnique({
       where: { code: fiatDto.code },
     });
@@ -148,6 +201,7 @@ export class CoinsService {
         img: fiat.img,
         coinName: fiat.name,
         coinId: fiat.code,
+        wallet: { connect: { id: walletId } },
         avgPrice: fiatDto ? 1 / fiat.price : 0,
         user: { connect: { id: userId } },
       },
@@ -155,15 +209,20 @@ export class CoinsService {
   }
 
   // Generate Where !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  generateWhere(userId: string, coinId: string): Prisma.CoinsWhereInput {
+  generateWhere(walletId: string, userId: string, coinId: string): Prisma.CoinsWhereInput {
     const whereArr = [];
-    whereArr.push({ userId });
+    if (walletId) {
+      whereArr.push({ walletId });
+    }
     if (coinId) {
       whereArr.push({ coinId });
+    }
+    if (userId) {
+      whereArr.push({ userId });
     }
     if (whereArr.length > 1) {
       return { AND: whereArr };
     }
-    return { userId };
+    return whereArr[0];
   }
 }

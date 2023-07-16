@@ -1,15 +1,16 @@
-import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
-import { ApiTags, ApiBody, ApiBearerAuth, ApiCreatedResponse, ApiResponse, ApiQuery, ApiParam } from '@nestjs/swagger';
-import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { TransactionsService } from './transactions.service';
-import { CreateTransactionDto } from './dto/create.transaction.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Transactions } from '@prisma/client';
-import { TransactionStatusEnum } from 'src/general/enums/transaction.status.enum';
+import { TransactionStatusEnum } from 'src/general/enums';
+import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { CreateTransactionResponse } from 'src/general/swagger.responses/transactions.responses/create.transaction.response';
 import { GetAllTransactionsResponse } from 'src/general/swagger.responses/transactions.responses/get.all.transactions.response';
+
+import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
+import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
+import { CreateTransactionDto } from './dto/create.transaction.dto';
+import { TransactionsService } from './transactions.service';
 
 @ApiTags('Transactions')
 @Controller('transactions')
@@ -30,18 +31,20 @@ export class TransactionsController {
   @ApiQuery({ name: 'order_by', required: false })
   @ApiQuery({ name: 'coinId', required: false })
   @ApiQuery({ name: 'status', required: false })
+  @ApiQuery({ name: 'walletId', required: false })
   @UseGuards(AuthGuard('jwt'))
   @Get()
   getTransactions(
     @Req() request: IRequest,
-    @Query('page') page: number = 1,
-    @Query('per_page') perPage: number = 10,
-    @Query('order_by') orderBy: string = 'createdAt',
+    @Query('page') page = 1,
+    @Query('per_page') perPage = 10,
+    @Query('order_by') orderBy = 'createdAt',
     @Query('date') date?: string,
     @Query('coinId') coinId?: string,
     @Query('status') status?: TransactionStatusEnum,
+    @Query('walletId') walletId?: string,
   ): Promise<PaginationResponseI<Transactions>> {
-    return this.transactionsService.getTransactions(request.user.id, +page, +perPage, orderBy, date, coinId, status);
+    return this.transactionsService.getTransactions(request.user.id, walletId, +page, +perPage, orderBy, date, coinId, status);
   }
 
   // Create transaction !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

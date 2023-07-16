@@ -23,7 +23,7 @@ export class FiatResponse {
     type: String,
     example: 'Dollar',
   })
-  name: String;
+  name: string;
 
   @ApiProperty({
     type: String,
