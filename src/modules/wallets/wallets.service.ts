@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { currencyFileds } from 'src/general/configs';
 import { CoinTypeEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
+import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
 import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
 import { GetOneWalletI } from 'src/general/interfaces/wallets/getWalletById';
@@ -11,7 +12,6 @@ import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
 import { CoinsService } from '../coins/coins.service';
 import { UserService } from '../user/user.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
-import { UpdateWalletDto } from './dto/update-wallet.dto';
 
 @Injectable()
 export class WalletsService {
@@ -90,12 +90,26 @@ export class WalletsService {
     };
   }
 
-  update(id: number, updateWalletDto: UpdateWalletDto) {
-    return `This action updates a #${id} wallet`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} wallet`;
+  async deleteWallet(id: string): Promise<StringresponseI> {
+    const wallet = await this.prisma.wallets.findUnique({
+      where: { id },
+      include: { transactions: true, coins: true, deposits: true, walletValues: true },
+    });
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+    const promises = [];
+    const coinsIds = wallet.coins.map((coin) => coin.id);
+    const transactionsIds = wallet.transactions.map((transaction) => transaction.id);
+    const depositsIds = wallet.deposits.map((deposit) => deposit.id);
+    const valuesId = wallet.walletValues.map((value) => value.id);
+    promises.push(this.prisma.coins.deleteMany({ where: { id: { in: coinsIds } } }));
+    promises.push(this.prisma.transactions.deleteMany({ where: { id: { in: transactionsIds } } }));
+    promises.push(this.prisma.deposits.deleteMany({ where: { id: { in: depositsIds } } }));
+    promises.push(this.prisma.walletValues.deleteMany({ where: { id: { in: valuesId } } }));
+    await Promise.all(promises);
+    await this.prisma.wallets.delete({ where: { id } });
+    return { status: 'Wallet deleted' };
   }
 
   async calculateInvested(data: CreateWalletDto): Promise<number> {

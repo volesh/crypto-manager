@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
+import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
 import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
 import { GetOneWalletI } from 'src/general/interfaces/wallets/getWalletById';
+import { Stringresponse } from 'src/general/swagger.responses/auth.responses/string.response';
 import { CreateWallet } from 'src/general/swagger.responses/wallets.responses/createWallet.response';
 import { WalletValues } from 'src/general/swagger.responses/wallets.responses/getAllWallets.response';
 import { GetOneWallet } from 'src/general/swagger.responses/wallets.responses/getOneWallet';
@@ -46,8 +48,11 @@ export class WalletsController {
   //   return this.walletsService.update(+id, updateWalletDto);
   // }
 
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.walletsService.remove(+id);
-  // }
+  @ApiResponse({ status: 200, type: Stringresponse })
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', type: String })
+  @Delete(':id')
+  remove(@Param('id') id: string): Promise<StringresponseI> {
+    return this.walletsService.deleteWallet(id);
+  }
 }
