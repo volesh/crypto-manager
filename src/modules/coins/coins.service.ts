@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Coins, Fiat, Prisma } from '@prisma/client';
+import Decimal from 'decimal.js';
 import { currencyFileds } from 'src/general/configs';
 import { CoinTypeEnum, FieldsForSort, OrderEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
@@ -72,10 +73,21 @@ export class CoinsService {
 
       arrayOfCoins.forEach((coin) => {
         const elem = coins.find((elem) => elem.coinId === coin.coinId);
+
         if (elem) {
-          elem.spendMoney += coin.spendMoney;
-          elem.amount += coin.amount;
-          elem.avgPrice = elem.spendMoney / elem.amount;
+          const elemSpendMoney = new Decimal(elem.spendMoney);
+          const coinSpendMoney = new Decimal(coin.spendMoney);
+          const elemAmount = new Decimal(elem.amount);
+          const coinAmount = new Decimal(coin.amount);
+
+          //  elem.spendMoney += coin.spendMoney
+          elem.spendMoney = Number(elemSpendMoney.plus(coinSpendMoney));
+
+          // elem.amount += coin.amount
+          elem.amount = Number(elemAmount.plus(coinAmount));
+
+          // elem.avgPrice = elem.avgPrice / elem.amount
+          elem.avgPrice = Number(elemSpendMoney.dividedBy(elemAmount));
         } else {
           coin.walletId = null;
           coins.push(coin);
@@ -97,13 +109,18 @@ export class CoinsService {
 
   // Create Coin !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async createCoin(coin: CreateCoinDto, userId: string, walletId: string): Promise<Coins> {
-    const isUserExist = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const isWalletExist = await this.prisma.wallets.findUnique({
+      where: { id: walletId },
     });
-    if (!isUserExist) {
-      throw new NotFoundException(`User with id: ${userId} not found`);
+    if (!isWalletExist) {
+      throw new NotFoundException(`Wallet with id: ${walletId} not found`);
     }
-    const avgPrice = Math.round((coin.spendMoney / coin.amount) * 100) / 100 || 0;
+    const spendMoney = new Decimal(coin.spendMoney);
+    const coinAmount = new Decimal(coin.amount);
+
+    // avgPrice = coin.spendMoney / coin.amount
+    const avgPrice = Number(spendMoney.dividedBy(coinAmount)) || 0;
+
     const coinMarket = await CoingeckoService.getCoinMarkest([coin.coinId]);
     if (coinMarket.length === 0) {
       throw new BadRequestException(`Coin with id ${coin.coinId} not found`);
@@ -137,13 +154,13 @@ export class CoinsService {
   }
 
   // Calculate Crypto balance !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async calculateCryptoBalance(userId: string) {
-    let balance = 0;
-    let notFixedIncome = 0;
-    let fiat = 0;
+  async calculateCryptoBalance(userId: string): Promise<{ balance: number; notFixedIncome: number; fiat: number }> {
+    let balance = new Decimal(0);
+    let notFixedIncome = new Decimal(0);
+    let fiat = new Decimal(0);
     const coins = await this.getUsersCoins(userId);
     if (!coins) {
-      return { balance, notFixedIncome };
+      return { balance: Number(balance), notFixedIncome: Number(notFixedIncome), fiat: Number(fiat) };
     }
     const listOfCoinIdPromises = coins.map(async (coin) => {
       if (coin.type !== CoinTypeEnum.Fiat) {
@@ -151,7 +168,11 @@ export class CoinsService {
       } else {
         const { price } = await this.prisma.fiat.findUnique({ where: { code: coin.coinId } });
 
-        fiat += coin.amount / price;
+        const priceD = new Decimal(price);
+        const coinAmount = new Decimal(coin.amount);
+
+        // fiat = coin.amount / price
+        fiat = coinAmount.dividedBy(priceD);
       }
     });
     const listOfCoinId = await Promise.all(listOfCoinIdPromises);
@@ -161,12 +182,17 @@ export class CoinsService {
       if (!market || coin.type === CoinTypeEnum.Fiat) {
         return;
       }
-      balance += market.current_price * coin.amount;
-      notFixedIncome += market.current_price * coin.amount - coin.spendMoney;
+      const coinAmount = new Decimal(coin.amount);
+      const marketPrice = new Decimal(market.current_price);
+      const coinSpendMoney = new Decimal(coin.spendMoney);
+
+      // balande += market.current_price * coin.amount
+      balance = balance.plus(marketPrice.times(coinAmount));
+
+      // notFixedIncome += market.current_price * coin.amount - coin.spendMoney
+      notFixedIncome = notFixedIncome.plus(marketPrice.times(coinAmount).minus(coinSpendMoney));
     });
-    balance = +balance;
-    notFixedIncome = +notFixedIncome;
-    return { balance, notFixedIncome, fiat };
+    return { balance: Number(balance), notFixedIncome: Number(notFixedIncome), fiat: Number(fiat) };
   }
 
   // Get Wallet Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -185,24 +211,27 @@ export class CoinsService {
   }
 
   // Create fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async createFiat(fiatDto: CreateFiatDto, userId: string, walletId): Promise<Coins> {
+  async createFiat(fiatDto: CreateFiatDto, userId: string, walletId: string): Promise<Coins> {
     const fiat = await this.prisma.fiat.findUnique({
       where: { code: fiatDto.code },
     });
     if (!fiat) {
       throw new NotFoundException(`Fiat with code: ${fiatDto.code} not found`);
     }
+    // fiatDto.amount / fiat.price
+    const spendMoney = Number(new Decimal(fiatDto.amount).dividedBy(new Decimal(fiat.price)));
     return this.prisma.coins.create({
       data: {
         amount: fiatDto.amount,
-        spendMoney: fiatDto.amount / fiat.price,
+        spendMoney,
         type: CoinTypeEnum.Fiat,
         symbol: fiat.symbol,
         img: fiat.img,
         coinName: fiat.name,
         coinId: fiat.code,
         wallet: { connect: { id: walletId } },
-        avgPrice: fiatDto ? 1 / fiat.price : 0,
+        // 1 / fiat.price
+        avgPrice: fiatDto ? Number(new Decimal(1).dividedBy(new Decimal(fiat.price))) : 0,
         user: { connect: { id: userId } },
       },
     });

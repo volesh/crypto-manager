@@ -128,6 +128,7 @@ export class WalletsService {
     invested = data.coins.reduce((accum, coin) => {
       return (accum += coin.spendMoney);
     }, invested);
+    console.log(invested);
 
     return invested;
   }
