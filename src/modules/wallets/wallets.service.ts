@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import Decimal from 'decimal.js';
 import { currencyFileds } from 'src/general/configs';
 import { CoinTypeEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
@@ -79,10 +80,12 @@ export class WalletsService {
     const { balance, notFixedIncome, fiat } = await this.calculateWalletBalance(id);
     const walletForResponse = {
       ...wallet,
-      balance: balance + fiat,
+      // balance: balance + fiat,
+      balance: Number(new Decimal(balance).plus(new Decimal(fiat))),
       notFixedIncome,
       fiat,
-      totalIncome: notFixedIncome + wallet.fixedIncome,
+      // totalIncome: notFixedIncome + wallet.fixedIncome,
+      totalIncome: Number(new Decimal(notFixedIncome).plus(new Decimal(wallet.fixedIncome))),
     };
     return {
       wallet: CurrencyHelper.calculateCurrency(walletForResponse, currencyFileds.wallet, user.currency),
@@ -121,14 +124,17 @@ export class WalletsService {
       });
       invested = data.fiat.reduce((accum, fiat) => {
         const fiatPrice = fiats.find((elem) => elem.code === fiat.code);
-        return (accum += fiat.amount / fiatPrice.price);
+        // return (accum += fiat.amount / fiatPrice.price);
+        return (accum = Number(
+          new Decimal(accum).plus(new Decimal(fiat.amount).dividedBy(new Decimal(fiatPrice.price))).valueOf(),
+        ));
       }, invested);
     }
 
     invested = data.coins.reduce((accum, coin) => {
-      return (accum += coin.spendMoney);
+      // return (accum += coin.spendMoney);
+      return (accum = Number(new Decimal(accum).plus(new Decimal(coin.spendMoney)).valueOf()));
     }, invested);
-    console.log(invested);
 
     return invested;
   }
@@ -147,7 +153,8 @@ export class WalletsService {
       } else {
         const { price } = await this.prisma.fiat.findUnique({ where: { code: coin.coinId } });
 
-        fiat += coin.amount / price;
+        // fiat += coin.amount / price;
+        fiat = Number(new Decimal(fiat).plus(new Decimal(coin.amount).dividedBy(new Decimal(price))).valueOf);
       }
     });
     const listOfCoinId = await Promise.all(listOfCoinIdPromises);
@@ -157,11 +164,19 @@ export class WalletsService {
       if (!market || coin.type === CoinTypeEnum.Fiat) {
         return;
       }
-      balance += market.current_price * coin.amount;
-      notFixedIncome += market.current_price * coin.amount - coin.spendMoney;
+      // balance += market.current_price * coin.amount;
+      balance = Number(new Decimal(balance).plus(new Decimal(market.current_price).times(new Decimal(coin.amount))).valueOf());
+      // notFixedIncome += market.current_price * coin.amount - coin.spendMoney;
+      notFixedIncome = Number(
+        new Decimal(notFixedIncome)
+          .plus(new Decimal(market.current_price).times(new Decimal(coin.amount)))
+          .minus(new Decimal(coin.spendMoney))
+          .valueOf(),
+      );
     });
-    balance = +balance;
-    notFixedIncome = +notFixedIncome;
+
+    // balance = +balance;
+    // notFixedIncome = +notFixedIncome;
     return { balance, notFixedIncome, fiat };
   }
 }

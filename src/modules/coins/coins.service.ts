@@ -81,13 +81,13 @@ export class CoinsService {
           const coinAmount = new Decimal(coin.amount);
 
           //  elem.spendMoney += coin.spendMoney
-          elem.spendMoney = Number(elemSpendMoney.plus(coinSpendMoney));
+          elem.spendMoney = Number(elemSpendMoney.plus(coinSpendMoney).valueOf());
 
           // elem.amount += coin.amount
-          elem.amount = Number(elemAmount.plus(coinAmount));
+          elem.amount = Number(elemAmount.plus(coinAmount).valueOf());
 
           // elem.avgPrice = elem.avgPrice / elem.amount
-          elem.avgPrice = Number(elemSpendMoney.dividedBy(elemAmount));
+          elem.avgPrice = Number(elemSpendMoney.dividedBy(elemAmount).valueOf());
         } else {
           coin.walletId = null;
           coins.push(coin);
@@ -119,7 +119,7 @@ export class CoinsService {
     const coinAmount = new Decimal(coin.amount);
 
     // avgPrice = coin.spendMoney / coin.amount
-    const avgPrice = Number(spendMoney.dividedBy(coinAmount)) || 0;
+    const avgPrice = Number(spendMoney.dividedBy(coinAmount).valueOf()) || 0;
 
     const coinMarket = await CoingeckoService.getCoinMarkest([coin.coinId]);
     if (coinMarket.length === 0) {
@@ -160,7 +160,11 @@ export class CoinsService {
     let fiat = new Decimal(0);
     const coins = await this.getUsersCoins(userId);
     if (!coins) {
-      return { balance: Number(balance), notFixedIncome: Number(notFixedIncome), fiat: Number(fiat) };
+      return {
+        balance: Number(balance.valueOf()),
+        notFixedIncome: Number(notFixedIncome.valueOf()),
+        fiat: Number(fiat.valueOf()),
+      };
     }
     const listOfCoinIdPromises = coins.map(async (coin) => {
       if (coin.type !== CoinTypeEnum.Fiat) {
@@ -192,7 +196,7 @@ export class CoinsService {
       // notFixedIncome += market.current_price * coin.amount - coin.spendMoney
       notFixedIncome = notFixedIncome.plus(marketPrice.times(coinAmount).minus(coinSpendMoney));
     });
-    return { balance: Number(balance), notFixedIncome: Number(notFixedIncome), fiat: Number(fiat) };
+    return { balance: Number(balance.valueOf()), notFixedIncome: Number(notFixedIncome.valueOf()), fiat: Number(fiat.valueOf()) };
   }
 
   // Get Wallet Coins !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -219,7 +223,7 @@ export class CoinsService {
       throw new NotFoundException(`Fiat with code: ${fiatDto.code} not found`);
     }
     // fiatDto.amount / fiat.price
-    const spendMoney = Number(new Decimal(fiatDto.amount).dividedBy(new Decimal(fiat.price)));
+    const spendMoney = Number(new Decimal(fiatDto.amount).dividedBy(new Decimal(fiat.price)).valueOf());
     return this.prisma.coins.create({
       data: {
         amount: fiatDto.amount,
@@ -231,7 +235,7 @@ export class CoinsService {
         coinId: fiat.code,
         wallet: { connect: { id: walletId } },
         // 1 / fiat.price
-        avgPrice: fiatDto ? Number(new Decimal(1).dividedBy(new Decimal(fiat.price))) : 0,
+        avgPrice: fiatDto ? Number(new Decimal(1).dividedBy(new Decimal(fiat.price)).valueOf()) : 0,
         user: { connect: { id: userId } },
       },
     });

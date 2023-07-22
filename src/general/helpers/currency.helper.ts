@@ -9,7 +9,14 @@ export class CurrencyHelper {
         const elem = new Decimal(data[field]);
 
         // data[field] = data[field] * currency.price
-        data[field] = Number(elem.times(price));
+        let number: Decimal | string = elem.times(price);
+
+        if (number.lessThan(1)) {
+          number = number.toFixed(6);
+        } else {
+          number = number.toFixed(2);
+        }
+        data[field] = Number(number.valueOf());
       }
     });
     return data;
