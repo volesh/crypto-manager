@@ -1,7 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Wallets } from '@prisma/client';
 import Decimal from 'decimal.js';
-import { Strategy } from 'passport-jwt';
 import { currencyFileds } from 'src/general/configs';
 import { CoinTypeEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
