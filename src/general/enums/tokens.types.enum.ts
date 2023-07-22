@@ -1,3 +1,3 @@
 export enum TokensTypeEnum {
-  ForgotPass = 'Forgot passeord verefication code',
+  ForgotPass = 'Forgot password verefication code',
 }

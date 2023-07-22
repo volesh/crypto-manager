@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
+import Decimal from 'decimal.js';
 import { currencyFileds } from 'src/general/configs';
 import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helpers';
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
@@ -79,19 +80,26 @@ export class UserService {
     let fixedIncome = 0;
     let withdraw = 0;
     wallets.forEach((wallet) => {
-      invested += wallet.invested;
-      fixedIncome += wallet.fixedIncome;
-      withdraw += wallet.withdraw;
+      // invested += wallet.invested
+      invested = Number(new Decimal(invested).plus(new Decimal(wallet.invested)).valueOf());
+
+      // fixedIncome += wallet.fixedIncome;
+      fixedIncome = Number(new Decimal(fixedIncome).plus(new Decimal(wallet.fixedIncome)).valueOf());
+
+      // withdraw += wallet.withdraw;
+      withdraw = Number(new Decimal(withdraw).plus(new Decimal(wallet.withdraw)).valueOf());
     });
     // calculate balance and income
     const { balance, notFixedIncome, fiat } = await this.coinsService.calculateCryptoBalance(isUserExist.id);
     //return data
     return {
       ...isUserExist,
-      balance: balance + fiat,
+      // blance + fiat
+      balance: Number(new Decimal(balance).plus(new Decimal(fiat)).valueOf()),
       fiat: fiat,
       notFixedIncome,
-      totalIncome: fixedIncome + notFixedIncome,
+      // totalIncome: fixedIncome + notFixedIncome,
+      totalIncome: Number(new Decimal(fixedIncome).plus(new Decimal(notFixedIncome)).valueOf()),
       invested,
       withdraw,
       fixedIncome,

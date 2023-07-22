@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Coins, Deposits, Prisma, Wallets } from '@prisma/client';
+import Decimal from 'decimal.js';
 import { DepositsEnum, OrderEnum } from 'src/general/enums';
 import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
 import { PrismaService } from 'src/prisma.service';
@@ -88,19 +89,39 @@ export class DepositsService {
       if (fiat.amount < deposit.amount) {
         throw new BadRequestException(`You can't delete this deposit bacause in your balanse less then deposit amount`);
       } else {
-        await this.coinsService.updateCoin(fiat.amount - deposit.amount, 1, fiat.spendMoney - deposit.amount, fiat.id);
+        // fiat.amount - deposit.amount
+        const amount = Number(new Decimal(fiat.amount).minus(new Decimal(deposit.amount)).valueOf());
+
+        // fiat.spendMoney - deposit.amount
+        const spendMoney = Number(new Decimal(fiat.spendMoney).minus(new Decimal(deposit.amount)).valueOf());
+        await this.coinsService.updateCoin(amount, 1, spendMoney, fiat.id);
+
+        //deposit.wallet.invested - deposit.amount
+        const invested = Number(new Decimal(deposit.wallet.invested).minus(new Decimal(deposit.amount)).valueOf());
         await this.prisma.wallets.update({
           where: { id: deposit.walletId },
-          data: { invested: deposit.wallet.invested - deposit.amount },
+          data: { invested },
         });
       }
     } else {
-      await this.coinsService.updateCoin(fiat.amount + deposit.amount, 1, fiat.spendMoney + deposit.amount, fiat.id);
+      // fiat.amount + deposit.amount
+      const amount = Number(new Decimal(fiat.amount).plus(new Decimal(deposit.amount)).valueOf());
+
+      // fiat.spendMoney + deposit.amount
+      const spendMoney = Number(new Decimal(fiat.spendMoney).plus(new Decimal(deposit.amount)).valueOf());
+
+      await this.coinsService.updateCoin(amount, 1, spendMoney, fiat.id);
+
+      // deposit.wallet.invested + deposit.amount
+      const invested = Number(new Decimal(deposit.wallet.invested).plus(new Decimal(deposit.amount)).valueOf());
+
+      // deposit.wallet.withdraw - deposit.amount
+      const withdraw = Number(new Decimal(deposit.wallet.withdraw).minus(new Decimal(deposit.amount)).valueOf());
       await this.prisma.wallets.update({
         where: { id: deposit.walletId },
         data: {
-          invested: deposit.wallet.invested + deposit.amount,
-          withdraw: deposit.wallet.withdraw - deposit.amount,
+          invested,
+          withdraw,
         },
       });
     }
@@ -124,31 +145,45 @@ export class DepositsService {
   async updateData(deposit: CreateDepositDto, wallet: Wallets, fiat: Coins) {
     const promisesArr = [];
     const { price } = await this.prisma.fiat.findUnique({ where: { code: fiat.coinId } });
-    const spendMoney = deposit.amount / price;
+
+    // deposit.amount / price
+    const spendMoney = Number(new Decimal(deposit.amount).dividedBy(new Decimal(price)).valueOf());
     if (deposit.status === DepositsEnum.Buy) {
+      // wallet.invested + spendMoney
+      const invested = Number(new Decimal(wallet.invested).plus(new Decimal(spendMoney)).valueOf());
+
+      // fiat.amount + deposit.amount
+      const amount = Number(new Decimal(fiat.amount).plus(new Decimal(deposit.amount)).valueOf());
       const walletUpdate = this.prisma.wallets.update({
         where: { id: wallet.id },
-        data: { invested: wallet.invested + spendMoney },
+        data: { invested },
       });
-      const avg = (fiat.spendMoney + spendMoney) / (fiat.amount + deposit.amount);
-      const fiatUpdate = this.coinsService.updateCoin(fiat.amount + deposit.amount, avg, fiat.spendMoney + spendMoney, fiat.id);
+
+      // (fiat.spendMoney + spendMoney) / (fiat.amount + deposit.amount);
+      const avg = Number(new Decimal(invested).dividedBy(new Decimal(amount)).valueOf());
+
+      // fiat.spendMoney + spendMoney
+      const fiatSpendMoney = Number(new Decimal(fiat.spendMoney).plus(new Decimal(spendMoney)).valueOf());
+      const fiatUpdate = this.coinsService.updateCoin(amount, avg, fiatSpendMoney, fiat.id);
 
       promisesArr.push(walletUpdate);
       promisesArr.push(fiatUpdate);
     } else {
-      const withdraw = wallet.withdraw + spendMoney;
+      // wallet.withdraw + spendMoney
+      const withdraw = Number(new Decimal(wallet.withdraw).plus(new Decimal(spendMoney)).valueOf());
       const walletUpdate = this.prisma.wallets.update({
         where: { id: wallet.id },
         data: {
           withdraw,
         },
       });
-      const fiatUpdate = this.coinsService.updateCoin(
-        fiat.amount - deposit.amount,
-        fiat.avgPrice,
-        fiat.spendMoney - spendMoney,
-        fiat.id,
-      );
+      //fiat.amount - deposit.amount
+      const fiatAmount = Number(new Decimal(fiat.amount).minus(new Decimal(deposit.amount)).valueOf());
+
+      // fiat.spendMoney - spendMoney
+      const fiatSpendMoney = Number(new Decimal(fiat.spendMoney).minus(new Decimal(spendMoney)).valueOf());
+
+      const fiatUpdate = this.coinsService.updateCoin(fiatAmount, fiat.avgPrice, fiatSpendMoney, fiat.id);
       promisesArr.push(walletUpdate);
       promisesArr.push(fiatUpdate);
     }

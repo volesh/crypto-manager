@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import Decimal from 'decimal.js';
 import * as moment from 'moment';
 import { WalletsService } from 'src/modules/wallets/wallets.service';
 import { PrismaService } from 'src/prisma.service';
@@ -15,13 +16,22 @@ export class WalletSchedule {
     const users = await this.prisma.user.findMany({ select: { id: true, wallets: { select: { id: true } } } });
     for (const user of users) {
       const promises = [];
-      let accountAmount = 0;
+      let accountAmount = new Decimal(0);
       for (const wallet of user.wallets) {
         const { balance: walletBalance, fiat: walletFiat } = await this.walletService.calculateWalletBalance(wallet.id);
-        accountAmount += walletBalance + walletFiat;
+
+        const balanceD = new Decimal(walletBalance);
+        const fiatD = new Decimal(walletFiat);
+
+        // totalBalance += walletFiat
+        const totalBalance = balanceD.plus(fiatD);
+
+        // accountAmount += totalBalance
+        accountAmount = accountAmount.plus(totalBalance);
+
         const promise = this.prisma.walletValues.create({
           data: {
-            amount: walletBalance + walletFiat,
+            amount: totalBalance.toNumber(),
             user: { connect: { id: user.id } },
             wallet: { connect: { id: wallet.id } },
             date,
@@ -33,7 +43,7 @@ export class WalletSchedule {
       await Promise.all(promises);
       await this.prisma.accountValues.create({
         data: {
-          amount: accountAmount,
+          amount: Number(accountAmount),
           user: { connect: { id: user.id } },
           date,
           timestamp,
