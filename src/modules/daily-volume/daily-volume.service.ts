@@ -28,6 +28,7 @@ export class WalletValuesService {
         throw new NotFoundException('Values not found');
       }
       const updatedValues = values.map((data) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { timestamp, ...wallet } = data;
         return CurrencyHelper.calculateCurrency(wallet, currencyFileds.walletValue, user.currency);
       });
