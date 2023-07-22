@@ -1,5 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Wallets } from '@prisma/client';
 import Decimal from 'decimal.js';
+import { Strategy } from 'passport-jwt';
 import { currencyFileds } from 'src/general/configs';
 import { CoinTypeEnum } from 'src/general/enums';
 import { CurrencyHelper } from 'src/general/helpers';
@@ -13,6 +15,7 @@ import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
 import { CoinsService } from '../coins/coins.service';
 import { UserService } from '../user/user.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
+import { UpdateWalletDto } from './dto/update-wallet.dto';
 
 @Injectable()
 export class WalletsService {
@@ -91,6 +94,16 @@ export class WalletsService {
       wallet: CurrencyHelper.calculateCurrency(walletForResponse, currencyFileds.wallet, user.currency),
       currency: user.currency,
     };
+  }
+
+  async update(data: UpdateWalletDto, id: string): Promise<GetOneWalletI> {
+    const isExist = await this.findOne(id);
+    if (!isExist) {
+      throw new NotFoundException(`Wallet with id: ${id} not dound`);
+    }
+    const updatedWallet = await this.prisma.wallets.update({ where: { id }, data });
+    isExist.wallet = { ...isExist.wallet, ...updatedWallet };
+    return isExist;
   }
 
   async deleteWallet(id: string): Promise<StringresponseI> {

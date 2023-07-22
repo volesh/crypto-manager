@@ -1,5 +1,9 @@
-import { PartialType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsOptional, IsString } from 'class-validator';
 
-import { CreateWalletDto } from './create-wallet.dto';
-
-export class UpdateWalletDto extends PartialType(CreateWalletDto) {}
+export class UpdateWalletDto {
+  @ApiProperty({ type: String, example: 'Binance' })
+  @IsString()
+  @IsOptional()
+  name: string;
+}

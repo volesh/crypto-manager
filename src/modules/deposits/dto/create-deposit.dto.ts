@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, Min } from 'class-validator';
 import { DepositsEnum } from 'src/general/enums';
 
 export class CreateDepositDto {
@@ -29,7 +29,7 @@ export class CreateDepositDto {
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
   })
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   walletId: string;
 }

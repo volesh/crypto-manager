@@ -1,9 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Fiat } from '@prisma/client';
 
+import { TokenResponse } from '../auth.responses/tokens.response';
 import { FiatResponse } from '../fiat/fiat.response';
 
-export class CreateUserResponse {
+export class CreateUser {
   @ApiProperty({
     type: String,
     example: 'aa12ecdb-852e-4c3f-8cce-2e5b213bac33',
@@ -30,4 +31,14 @@ export class CreateUserResponse {
 
   @ApiProperty({ type: FiatResponse })
   currency: Fiat;
+}
+
+export class CreateUserResponse {
+  @ApiProperty({
+    type: CreateUser,
+  })
+  user: CreateUser;
+
+  @ApiProperty({ type: TokenResponse })
+  tokens: TokenResponse;
 }
