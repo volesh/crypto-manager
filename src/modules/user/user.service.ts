@@ -6,10 +6,12 @@ import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helper
 import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
 import { createUserPresenter } from 'src/general/presenters';
+import { CreateUser } from 'src/general/swagger.responses/user.responses/createUser.response';
 import { PrismaService } from 'src/prisma.service';
 
 import { CoinsService } from '../coins/coins.service';
 import { CreateUserDto } from './dto/create.user.dto';
+import { UpdateUserDto } from './dto/update.user.dto';
 
 @Injectable()
 export class UserService {
@@ -115,7 +117,24 @@ export class UserService {
   }
 
   // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async updateUser(data: Prisma.UserUpdateInput, email: string): Promise<User> {
+  async updateUser(data: UpdateUserDto, id: string): Promise<CreateUser> {
+    const isUserExist = await this.getOneUser(id);
+    if (!isUserExist) {
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    let currency = isUserExist.currency;
+    if (data.currencyId) {
+      currency = await this.prisma.fiat.findUnique({ where: { id: data.currencyId } });
+      if (!currency) {
+        throw new NotFoundException(`Currency with id: ${data.currencyId} not found`);
+      }
+    }
+    const updateUser = await this.prisma.user.update({ where: { id }, data });
+    return { ...updateUser, currency };
+  }
+
+  // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async changePassword(data: Prisma.UserUpdateInput, email: string): Promise<User> {
     if (data.email) {
       data.email = this.validateEmail(data.email as string);
     }

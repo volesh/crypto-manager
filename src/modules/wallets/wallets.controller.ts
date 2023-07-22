@@ -1,6 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Wallets } from '@prisma/client';
 import { IRequest } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
@@ -12,6 +13,7 @@ import { WalletValues } from 'src/general/swagger.responses/wallets.responses/ge
 import { GetOneWallet } from 'src/general/swagger.responses/wallets.responses/getOneWallet';
 
 import { CreateWalletDto } from './dto/create-wallet.dto';
+import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { WalletsService } from './wallets.service';
 
 @ApiTags('wallets')
@@ -43,10 +45,13 @@ export class WalletsController {
     return this.walletsService.findOne(walletId);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateWalletDto: UpdateWalletDto) {
-  //   return this.walletsService.update(+id, updateWalletDto);
-  // }
+  @ApiResponse({ status: 200, type: CreateWallet })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':walletId')
+  updateWallet(@Body() updateWalletDto: UpdateWalletDto, @Param('walletId') walletId: string): Promise<GetOneWalletI> {
+    return this.walletsService.update(updateWalletDto, walletId);
+  }
 
   @ApiResponse({ status: 200, type: Stringresponse })
   @ApiBearerAuth()

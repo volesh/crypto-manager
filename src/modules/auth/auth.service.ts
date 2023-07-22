@@ -97,7 +97,7 @@ export class AuthService {
     rest.email = this.userService.validateEmail(rest.email);
     await this.isCodeValid(rest, TokensTypeEnum.ForgotPass);
     const hashedPassword = await PasswordHelper.hashPassword(newPassword);
-    await this.userService.updateUser({ password: hashedPassword }, rest.email);
+    await this.userService.changePassword({ password: hashedPassword }, rest.email);
     await this.prisma.actionTokens.deleteMany({
       where: { userEmail: rest.email, value: rest.code },
     });
