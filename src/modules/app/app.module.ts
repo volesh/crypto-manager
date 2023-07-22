@@ -53,6 +53,7 @@ export class AppModule implements OnApplicationBootstrap {
         await this.prisma.fiat.update({ where: { code: fiat.code }, data: { price } });
       }
     }
+    // eslint-disable-next-line no-console
     console.log('Exchange rates loaded successful');
   }
 }
