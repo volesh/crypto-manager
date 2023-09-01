@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
+import { IRequest, IRequestOAuth } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
@@ -59,5 +60,15 @@ export class AuthController {
   @Patch('/changePass')
   codeVerefication(@Body() data: ChangePassDto): Promise<StringresponseI> {
     return this.authService.changePassword(data);
+  }
+
+  @Get('/google')
+  @UseGuards(AuthGuard('google'))
+  googleAuth() {}
+
+  @Get('/google/redirect')
+  @UseGuards(AuthGuard('google'))
+  googleRedirect(@Req() req: IRequestOAuth) {
+    return this.authService.googleLogin(req.user);
   }
 }

@@ -7,13 +7,19 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_DEV_URL")
 }
 
 enum Status {
   buy
   sell
   transfer
+}
+
+enum TokenType {
+  jwt
+  google
+  apple
 }
 
 enum CoinType {
@@ -31,7 +37,7 @@ model User {
   id            String          @id @default(uuid())
   name          String
   email         String          @unique
-  password      String
+  password      String?
   currencyId    String          @default("c6280c4b-4a79-4e45-8291-84d31e1e5a72")
   currency      Fiat            @relation(fields: [currencyId], references: [id])
   wallets       Wallets[]
@@ -117,7 +123,8 @@ model AccountValues {
 model Tokens {
   id           String   @id @default(uuid())
   accessToken  String
-  refreshToken String
+  refreshToken String?
+  type         TokenType
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
   userId       String

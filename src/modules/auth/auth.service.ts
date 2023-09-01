@@ -1,9 +1,9 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import { Prisma } from '@prisma/client';
+import { Prisma, TokenType } from '@prisma/client';
 import { currencyFileds } from 'src/general/configs';
 import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helpers';
-import { ReqUserI } from 'src/general/interfaces/request/request.interface';
+import { ReqUserI, ReqUserOAuth } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
@@ -38,7 +38,7 @@ export class AuthService {
       throw new BadRequestException('Wrong password');
     }
     const tokens = await this.tokensHelper.generateTokens(user.id);
-    await this.saveTokens({ ...tokens, user: { connect: { id: user.id } } });
+    await this.saveTokens({ ...tokens, user: { connect: { id: user.id } }, type: TokenType.jwt });
 
     const userForResponse = CurrencyHelper.calculateCurrency(createUserPresenter(user), currencyFileds.user, user.currency);
 
@@ -46,6 +46,28 @@ export class AuthService {
       user: userForResponse,
       tokens,
     };
+  }
+
+  // Google login !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async googleLogin({ accessToken, email, name }: ReqUserOAuth) {
+    const user = await this.userService.isUserExist(email);
+
+    if (user) {
+      const userForResponse = await this.userService.getFullUserInfo({ email });
+      await this.saveTokens({
+        accessToken,
+        user: { connect: { id: user.id } },
+        type: TokenType.google,
+      });
+      return { ...userForResponse, accessToken };
+    }
+    const createdUser = await this.userService.saveUser({ name, email });
+    await this.saveTokens({
+      accessToken,
+      user: { connect: { id: createdUser.id } },
+      type: TokenType.google,
+    });
+    return createdUser;
   }
 
   // Logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -60,7 +82,7 @@ export class AuthService {
   async refresh(id: string, token: string): Promise<TokensI> {
     await this.prisma.tokens.deleteMany({ where: { refreshToken: token } });
     const tokens = await this.tokensHelper.generateTokens(id);
-    await this.saveTokens({ ...tokens, user: { connect: { id } } });
+    await this.saveTokens({ ...tokens, user: { connect: { id } }, type: TokenType.jwt });
     return tokens;
   }
 
