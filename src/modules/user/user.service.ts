@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, TokenType, User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import Decimal from 'decimal.js';
 import { currencyFileds } from 'src/general/configs';
 import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helpers';
@@ -36,9 +36,7 @@ export class UserService {
   async createUser(user: CreateUserDto): Promise<LoginResponseI> {
     user.email = this.validateEmail(user.email);
     user.password = user.password.trim();
-    // if (!user.currencyId) {
-    //   user.currencyId = 'c6280c4b-4a79-4e45-8291-84d31e1e5a72';
-    // }
+
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
@@ -53,16 +51,10 @@ export class UserService {
       data: {
         ...tokens,
         user: { connect: { id: createdUser.id } },
-        type: TokenType.jwt,
       },
     });
-    // Return user without password
-    // const userForResponse = CurrencyHelper.calculateCurrency(
-    //   createUserPresenter({ ...createdUser }),
-    //   currencyFileds.user,
-    //   createdUser.currency,
-    // );
-    return { user: createdUser, tokens };
+    const fullUser = await this.getFullUserInfo({ email: user.email });
+    return { user: fullUser, tokens };
   }
 
   // Creare user OAuth !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

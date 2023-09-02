@@ -16,12 +16,6 @@ enum Status {
   transfer
 }
 
-enum TokenType {
-  jwt
-  google
-  apple
-}
-
 enum CoinType {
   coin
   fiat
@@ -124,7 +118,6 @@ model Tokens {
   id           String   @id @default(uuid())
   accessToken  String
   refreshToken String?
-  type         TokenType
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
   userId       String
