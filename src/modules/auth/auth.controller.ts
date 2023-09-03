@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
+import { IRequest, IRequestOAuth } from 'src/general/interfaces/request/request.interface';
 import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
 import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
@@ -13,6 +14,7 @@ import { AuthService } from './auth.service';
 import { ChangePassDto } from './dto/change.pass.dto';
 import { FrotgotPassDto } from './dto/forgot.pass.dto';
 import { LoginDto } from './dto/login.dto';
+import { OAuthLoginDto, OAuthRegisterDto } from './dto/oauth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -59,5 +61,31 @@ export class AuthController {
   @Patch('/changePass')
   codeVerefication(@Body() data: ChangePassDto): Promise<StringresponseI> {
     return this.authService.changePassword(data);
+  }
+
+  // Google Auth !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  @Get('/google')
+  @UseGuards(AuthGuard('google'))
+  googleAuth() {}
+
+  @ApiResponse({ type: LoginResponse })
+  @Get('/google/redirect')
+  @UseGuards(AuthGuard('google'))
+  googleRedirect(@Req() req: IRequestOAuth): Promise<LoginResponseI> {
+    return this.authService.googleLogin(req.user);
+  }
+
+  @Get('/OAuth/login')
+  @ApiBody({ type: OAuthLoginDto })
+  @ApiResponse({ type: LoginResponse })
+  googleLogin(@Body() body: OAuthLoginDto): Promise<LoginResponseI> {
+    return this.authService.oAuthLogin(body);
+  }
+
+  @Get('/OAuth/register')
+  @ApiBody({ type: OAuthRegisterDto })
+  @ApiResponse({ type: LoginResponse })
+  googleRegister(@Body() body: OAuthRegisterDto): Promise<LoginResponseI> {
+    return this.authService.oAuthRegister(body);
   }
 }

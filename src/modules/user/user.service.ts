@@ -36,9 +36,7 @@ export class UserService {
   async createUser(user: CreateUserDto): Promise<LoginResponseI> {
     user.email = this.validateEmail(user.email);
     user.password = user.password.trim();
-    if (!user.currencyId) {
-      user.currencyId = 'c6280c4b-4a79-4e45-8291-84d31e1e5a72';
-    }
+
     // Check is email unigue
     const isUnique = await this.getUserByParam({ email: user.email });
     if (isUnique) {
@@ -47,10 +45,7 @@ export class UserService {
     // Hash password
     const hashedPassword = await PasswordHelper.hashPassword(user.password);
     // Create user with hashed password
-    const createdUser = await this.prisma.user.create({
-      data: { ...user, password: hashedPassword },
-      include: { currency: true },
-    });
+    const createdUser = await this.saveUser({ ...user, password: hashedPassword });
     const tokens = await this.tokensHelper.generateTokens(createdUser.id);
     await this.prisma.tokens.create({
       data: {
@@ -58,13 +53,18 @@ export class UserService {
         user: { connect: { id: createdUser.id } },
       },
     });
-    // Return user without password
-    const userForResponse = CurrencyHelper.calculateCurrency(
-      createUserPresenter({ ...createdUser }),
-      currencyFileds.user,
-      createdUser.currency,
-    );
-    return { user: userForResponse, tokens };
+    const fullUser = await this.getFullUserInfo({ email: user.email });
+    return { user: fullUser, tokens };
+  }
+
+  // Creare user OAuth !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async saveUser(data: { name: string; email: string; password?: string; cirrencyId?: string }) {
+    const createdUser = await this.prisma.user.create({
+      data,
+      include: { currency: true },
+    });
+
+    return CurrencyHelper.calculateCurrency(createUserPresenter({ ...createdUser }), currencyFileds.user, createdUser.currency);
   }
 
   // Get full User Info !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -131,6 +131,12 @@ export class UserService {
     }
     const updateUser = await this.prisma.user.update({ where: { id }, data });
     return { ...updateUser, currency };
+  }
+
+  // Is user exist !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async isUserExist(email: string): Promise<User | null> {
+    const newEmail = this.validateEmail(email);
+    return this.prisma.user.findUnique({ where: { email: newEmail } });
   }
 
   // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
