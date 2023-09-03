@@ -14,6 +14,7 @@ import { TokensTypeEnum } from '../../general/enums';
 import { UserService } from '../user/user.service';
 import { ChangePassDto } from './dto/change.pass.dto';
 import { LoginDto } from './dto/login.dto';
+import { OAuthLoginDto, OAuthRegisterDto } from './dto/oauth.dto';
 
 @Injectable()
 export class AuthService {
@@ -66,6 +67,43 @@ export class AuthService {
     const fullUser = await this.userService.getFullUserInfo({ email });
 
     return { user: fullUser, tokens };
+  }
+
+  // OAuth Login !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async oAuthLogin(body: OAuthLoginDto): Promise<LoginResponseI> {
+    const email = await this.tokensHelper.validateOAuth(body.token, body.type);
+    const isUserExist = await this.userService.isUserExist(email);
+    if (!isUserExist) {
+      throw new NotFoundException(`User not found`);
+    }
+    const tokens = await this.tokensHelper.generateTokens(isUserExist.id);
+    await this.saveTokens({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: { connect: { id: isUserExist.id } },
+    });
+    const userForResponse = await this.userService.getFullUserInfo({ email });
+    return { user: userForResponse, tokens };
+  }
+
+  // Oauth Register !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  async oAuthRegister(body: OAuthRegisterDto): Promise<LoginResponseI> {
+    const email = await this.tokensHelper.validateOAuth(body.token, body.type);
+
+    const user = await this.userService.isUserExist(email);
+    if (user) {
+      throw new BadRequestException(`User with this email already exist`);
+    }
+    const createdUser = await this.userService.saveUser({ email, name: body.name });
+    const tokens = await this.tokensHelper.generateTokens(createdUser.id);
+    await this.saveTokens({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      user: { connect: { id: createdUser.id } },
+    });
+    const fullUserInfo = await this.userService.getFullUserInfo({ email });
+
+    return { user: fullUserInfo, tokens };
   }
 
   // Logout !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

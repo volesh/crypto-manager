@@ -135,7 +135,8 @@ export class UserService {
 
   // Is user exist !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async isUserExist(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+    const newEmail = this.validateEmail(email);
+    return this.prisma.user.findUnique({ where: { email: newEmail } });
   }
 
   // Update User !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
