@@ -63,14 +63,14 @@ export class AuthController {
     return this.authService.changePassword(data);
   }
 
-  @Get('/OAuth/login')
+  @Post('/OAuth/login')
   @ApiBody({ type: OAuthLoginDto })
   @ApiResponse({ type: LoginResponse })
   googleLogin(@Body() body: OAuthLoginDto): Promise<LoginResponseI> {
     return this.authService.oAuthLogin(body);
   }
 
-  @Get('/OAuth/register')
+  @Post('/OAuth/register')
   @ApiBody({ type: OAuthRegisterDto })
   @ApiResponse({ type: LoginResponse })
   googleRegister(@Body() body: OAuthRegisterDto): Promise<LoginResponseI> {
