@@ -8,22 +8,11 @@ import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AtStrategy } from './strategies/at.strategy';
-import { GoogleStrategy } from './strategies/google.strategy';
 import { RtStrategy } from './strategies/rt.strategy';
 
 @Module({
   imports: [JwtModule.register({})],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    UserService,
-    PrismaService,
-    JwtService,
-    CoinsService,
-    AtStrategy,
-    RtStrategy,
-    GoogleStrategy,
-    TokensHelper,
-  ],
+  providers: [AuthService, UserService, PrismaService, JwtService, CoinsService, AtStrategy, RtStrategy, TokensHelper],
 })
 export class AuthModule {}
