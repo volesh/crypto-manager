@@ -63,18 +63,6 @@ export class AuthController {
     return this.authService.changePassword(data);
   }
 
-  // Google Auth !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  @Get('/google')
-  @UseGuards(AuthGuard('google'))
-  googleAuth() {}
-
-  @ApiResponse({ type: LoginResponse })
-  @Get('/google/redirect')
-  @UseGuards(AuthGuard('google'))
-  googleRedirect(@Req() req: IRequestOAuth): Promise<LoginResponseI> {
-    return this.authService.googleLogin(req.user);
-  }
-
   @Get('/OAuth/login')
   @ApiBody({ type: OAuthLoginDto })
   @ApiResponse({ type: LoginResponse })
