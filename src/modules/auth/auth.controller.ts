@@ -2,13 +2,13 @@
 import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
-import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
-import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { LoginResponse } from 'src/general/swagger.responses/auth.responses/login.response';
-import { TokenResponse } from 'src/general/swagger.responses/auth.responses/tokens.response';
 
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { StringresponseI } from '../../general/interfaces/responses/string.response.interface';
+import { TokensI } from '../../general/interfaces/tokens/tokens.interface';
+import { LoginResponseI } from '../../general/interfaces/user/response.login.interface';
+import { LoginResponse } from '../../general/swagger.responses/auth.responses/login.response';
+import { TokenResponse } from '../../general/swagger.responses/auth.responses/tokens.response';
 import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
 import { AuthService } from './auth.service';
 import { ChangePassDto } from './dto/change.pass.dto';

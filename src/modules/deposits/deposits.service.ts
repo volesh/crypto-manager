@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Coins, Deposits, Prisma, Wallets } from '@prisma/client';
 import Decimal from 'decimal.js';
-import { DepositsEnum, OrderEnum } from 'src/general/enums';
-import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
-import { PrismaService } from 'src/prisma.service';
 
+import { DepositsEnum, OrderEnum } from '../../general/enums';
+import { PaginationResponseI } from '../../general/interfaces/pagination/pagination.response.interface';
+import { PrismaService } from '../../prisma.service';
 import { CoinsService } from '../coins/coins.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 

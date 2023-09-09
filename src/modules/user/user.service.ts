@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import Decimal from 'decimal.js';
-import { currencyFileds } from 'src/general/configs';
-import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helpers';
-import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
-import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { createUserPresenter } from 'src/general/presenters';
-import { CreateUser } from 'src/general/swagger.responses/user.responses/createUser.response';
-import { PrismaService } from 'src/prisma.service';
 
+import { currencyFileds } from '../../general/configs';
+import { CurrencyHelper, PasswordHelper, TokensHelper } from '../../general/helpers';
+import { GetUserI } from '../../general/interfaces/user/get.user.interface';
+import { LoginResponseI } from '../../general/interfaces/user/response.login.interface';
+import { createUserPresenter } from '../../general/presenters';
+import { CreateUser } from '../../general/swagger.responses/user.responses/createUser.response';
+import { PrismaService } from '../../prisma.service';
 import { CoinsService } from '../coins/coins.service';
 import { CreateUserDto } from './dto/create.user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';

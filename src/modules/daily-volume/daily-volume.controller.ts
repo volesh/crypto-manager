@@ -2,11 +2,11 @@ import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Fiat } from '@prisma/client';
-import { AccountValuesI } from 'src/general/interfaces/account-values/daily.volume.interface';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { GetAllWalletValues } from 'src/general/swagger.responses/daily.volume.responses/get.all.response';
-import { ErrorResponse } from 'src/general/swagger.responses/errors.responses/error.response';
 
+import { AccountValuesI } from '../../general/interfaces/account-values/daily.volume.interface';
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { GetAllWalletValues } from '../../general/swagger.responses/daily.volume.responses/get.all.response';
+import { ErrorResponse } from '../../general/swagger.responses/errors.responses/error.response';
 import { WalletValuesService } from './daily-volume.service';
 
 @ApiTags('dailyVolume')

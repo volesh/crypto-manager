@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { envConfig } from 'src/general/configs';
-import { ExchangeResponseI } from 'src/general/interfaces/exhange/exchange.response.interface';
+
+import { envConfig } from '../../general/configs';
+import { ExchangeResponseI } from '../../general/interfaces/exhange/exchange.response.interface';
 
 export const axiosService = axios.create({
   baseURL: `https://v6.exchangerate-api.com/v6/${envConfig.exchange_api_key}`,

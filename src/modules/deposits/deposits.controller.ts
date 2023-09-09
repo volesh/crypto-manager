@@ -2,12 +2,12 @@ import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } fro
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Deposits } from '@prisma/client';
-import { DepositsEnum, OrderEnum } from 'src/general/enums';
-import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { DepositResponse } from 'src/general/swagger.responses/deposits.responses/deposit.response';
-import { GetAllDepositsResponse } from 'src/general/swagger.responses/deposits.responses/get.all.deposits.response';
 
+import { DepositsEnum, OrderEnum } from '../../general/enums';
+import { PaginationResponseI } from '../../general/interfaces/pagination/pagination.response.interface';
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { DepositResponse } from '../../general/swagger.responses/deposits.responses/deposit.response';
+import { GetAllDepositsResponse } from '../../general/swagger.responses/deposits.responses/get.all.deposits.response';
 import { DepositsService } from './deposits.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
 

@@ -1,16 +1,16 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Prisma } from '@prisma/client';
-import { currencyFileds } from 'src/general/configs';
-import { CurrencyHelper, PasswordHelper, TokensHelper } from 'src/general/helpers';
-import { ReqUserI, ReqUserOAuth } from 'src/general/interfaces/request/request.interface';
-import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
-import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
-import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { createUserPresenter } from 'src/general/presenters';
-import { PrismaService } from 'src/prisma.service';
 
+import { currencyFileds } from '../../general/configs';
 import { TokensTypeEnum } from '../../general/enums';
+import { CurrencyHelper, PasswordHelper, TokensHelper } from '../../general/helpers';
+import { ReqUserI, ReqUserOAuth } from '../../general/interfaces/request/request.interface';
+import { StringresponseI } from '../../general/interfaces/responses/string.response.interface';
+import { TokensI } from '../../general/interfaces/tokens/tokens.interface';
+import { LoginResponseI } from '../../general/interfaces/user/response.login.interface';
+import { createUserPresenter } from '../../general/presenters';
+import { PrismaService } from '../../prisma.service';
 import { UserService } from '../user/user.service';
 import { ChangePassDto } from './dto/change.pass.dto';
 import { LoginDto } from './dto/login.dto';

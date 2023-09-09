@@ -2,13 +2,13 @@ import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { TokensSchedule } from 'src/cronJobs/tokens.cronjobs';
-import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
-import { envConfig } from 'src/general/configs';
-import { TokensHelper } from 'src/general/helpers';
-import { PrismaService } from 'src/prisma.service';
-import { ExchangeService } from 'src/services/coingecko/exchange.service';
 
+import { TokensSchedule } from '../../cronJobs/tokens.cronjobs';
+import { WalletSchedule } from '../../cronJobs/wallet.cronjobs';
+import { envConfig } from '../../general/configs';
+import { TokensHelper } from '../../general/helpers';
+import { PrismaService } from '../../prisma.service';
+import { ExchangeService } from '../../services/coingecko/exchange.service';
 import { AuthModule } from '../auth/auth.module';
 import { CoinsModule } from '../coins/coins.module';
 import { CoinsService } from '../coins/coins.service';
@@ -40,7 +40,7 @@ import { WalletsService } from '../wallets/wallets.service';
       },
     }),
   ],
-  providers: [TokensSchedule, PrismaService, WalletSchedule, CoinsService, WalletsService, UserService, TokensHelper, JwtService],
+  providers: [PrismaService, CoinsService, WalletsService, UserService, TokensHelper, JwtService, TokensSchedule, WalletSchedule],
 })
 export class AppModule implements OnApplicationBootstrap {
   constructor(private readonly prisma: PrismaService) {}

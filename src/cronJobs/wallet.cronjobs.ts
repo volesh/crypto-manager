@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import Decimal from 'decimal.js';
 import * as moment from 'moment';
-import { WalletsService } from 'src/modules/wallets/wallets.service';
-import { PrismaService } from 'src/prisma.service';
+
+import { WalletsService } from '../modules/wallets/wallets.service';
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class WalletSchedule {

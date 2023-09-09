@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { OAuthEnum } from 'src/general/enums/oauth.enum';
+
+import { OAuthEnum } from '../../../general/enums/oauth.enum';
 
 export class OAuthRegisterDto {
   @ApiProperty({ type: String, example: 'someToken' })

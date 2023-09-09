@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID, Min } from 'class-validator';
-import { DepositsEnum } from 'src/general/enums';
+
+import { DepositsEnum } from '../../../general/enums';
 
 export class CreateDepositDto {
   @ApiProperty({ type: Number, example: 500 })

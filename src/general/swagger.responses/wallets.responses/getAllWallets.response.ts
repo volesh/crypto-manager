@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Fiat } from '@prisma/client';
-import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
 
+import { GetAllWalletsI } from '../../interfaces/wallets/getAllWallets';
 import { FiatResponse } from '../fiat/fiat.response';
 import { WalletsResponse } from './wallet.response';
 

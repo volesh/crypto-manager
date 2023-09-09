@@ -1,15 +1,15 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import Decimal from 'decimal.js';
-import { currencyFileds } from 'src/general/configs';
-import { CoinTypeEnum } from 'src/general/enums';
-import { CurrencyHelper } from 'src/general/helpers';
-import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
-import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
-import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
-import { GetOneWalletI } from 'src/general/interfaces/wallets/getWalletById';
-import { PrismaService } from 'src/prisma.service';
-import { CoingeckoService } from 'src/services/coingecko/coingecko.service';
 
+import { currencyFileds } from '../../general/configs';
+import { CoinTypeEnum } from '../../general/enums';
+import { CurrencyHelper } from '../../general/helpers';
+import { StringresponseI } from '../../general/interfaces/responses/string.response.interface';
+import { CreateWalletI } from '../../general/interfaces/wallets/createWallet';
+import { GetAllWalletsI } from '../../general/interfaces/wallets/getAllWallets';
+import { GetOneWalletI } from '../../general/interfaces/wallets/getWalletById';
+import { PrismaService } from '../../prisma.service';
+import { CoingeckoService } from '../../services/coingecko/coingecko.service';
 import { CoinsService } from '../coins/coins.service';
 import { UserService } from '../user/user.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';

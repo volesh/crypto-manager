@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import * as moment from 'moment';
-import { PrismaService } from 'src/prisma.service';
+
+import { PrismaService } from '../prisma.service';
 
 @Injectable()
 export class TokensSchedule {

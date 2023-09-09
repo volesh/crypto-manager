@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { TokensHelper } from 'src/general/helpers';
-import { PrismaService } from 'src/prisma.service';
 
+import { TokensHelper } from '../../general/helpers';
+import { PrismaService } from '../../prisma.service';
 import { CoinsService } from '../coins/coins.service';
 import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';

@@ -1,16 +1,16 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
-import { CreateWalletI } from 'src/general/interfaces/wallets/createWallet';
-import { GetAllWalletsI } from 'src/general/interfaces/wallets/getAllWallets';
-import { GetOneWalletI } from 'src/general/interfaces/wallets/getWalletById';
-import { Stringresponse } from 'src/general/swagger.responses/auth.responses/string.response';
-import { CreateWallet } from 'src/general/swagger.responses/wallets.responses/createWallet.response';
-import { WalletValues } from 'src/general/swagger.responses/wallets.responses/getAllWallets.response';
-import { GetOneWallet } from 'src/general/swagger.responses/wallets.responses/getOneWallet';
 
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { StringresponseI } from '../../general/interfaces/responses/string.response.interface';
+import { CreateWalletI } from '../../general/interfaces/wallets/createWallet';
+import { GetAllWalletsI } from '../../general/interfaces/wallets/getAllWallets';
+import { GetOneWalletI } from '../../general/interfaces/wallets/getWalletById';
+import { Stringresponse } from '../../general/swagger.responses/auth.responses/string.response';
+import { CreateWallet } from '../../general/swagger.responses/wallets.responses/createWallet.response';
+import { WalletValues } from '../../general/swagger.responses/wallets.responses/getAllWallets.response';
+import { GetOneWallet } from '../../general/swagger.responses/wallets.responses/getOneWallet';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { WalletsService } from './wallets.service';

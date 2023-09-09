@@ -2,11 +2,11 @@ import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } fro
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Transactions } from '@prisma/client';
-import { TransactionStatusEnum } from 'src/general/enums';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { CreateTransactionResponse } from 'src/general/swagger.responses/transactions.responses/create.transaction.response';
-import { GetAllTransactionsResponse } from 'src/general/swagger.responses/transactions.responses/get.all.transactions.response';
 
+import { TransactionStatusEnum } from '../../general/enums';
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { CreateTransactionResponse } from '../../general/swagger.responses/transactions.responses/create.transaction.response';
+import { GetAllTransactionsResponse } from '../../general/swagger.responses/transactions.responses/get.all.transactions.response';
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
 import { CreateTransactionDto } from './dto/create.transaction.dto';

@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Coins, Fiat, Prisma, Transactions } from '@prisma/client';
 import Decimal from 'decimal.js';
-import { currencyFileds } from 'src/general/configs';
-import { CoinTypeEnum, TransactionStatusEnum } from 'src/general/enums';
-import { CurrencyHelper } from 'src/general/helpers';
-import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
-import { GetUserI } from 'src/general/interfaces/user/get.user.interface';
-import { PrismaService } from 'src/prisma.service';
 
+import { currencyFileds } from '../../general/configs';
+import { CoinTypeEnum, TransactionStatusEnum } from '../../general/enums';
+import { CurrencyHelper } from '../../general/helpers';
+import { StringresponseI } from '../../general/interfaces/responses/string.response.interface';
+import { GetUserI } from '../../general/interfaces/user/get.user.interface';
+import { PrismaService } from '../../prisma.service';
 import { CoinsService } from '../coins/coins.service';
 import { UserService } from '../user/user.service';
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';

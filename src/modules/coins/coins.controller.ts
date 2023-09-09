@@ -2,11 +2,11 @@ import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Coins, Fiat } from '@prisma/client';
-import { FieldsForSort, OrderEnum } from 'src/general/enums';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { GetAllCoinsResponse } from 'src/general/swagger.responses/coins.responses/get.al.coins.response';
-import { FiatResponse } from 'src/general/swagger.responses/fiat/fiat.response';
 
+import { FieldsForSort, OrderEnum } from '../../general/enums';
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { GetAllCoinsResponse } from '../../general/swagger.responses/coins.responses/get.al.coins.response';
+import { FiatResponse } from '../../general/swagger.responses/fiat/fiat.response';
 import { PaginationResponseI } from './../../general/interfaces/pagination/pagination.response.interface';
 import { CoinsService } from './coins.service';
 
