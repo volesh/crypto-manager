@@ -109,7 +109,7 @@ export class UserService {
   }
 
   // Get User by params !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  async getUserByParam(where: Partial<Prisma.UserWhereUniqueInput>): Promise<User | null> {
+  async getUserByParam(where: Prisma.UserWhereUniqueInput): Promise<User | null> {
     if (where.email) {
       where.email = this.validateEmail(where.email);
     }

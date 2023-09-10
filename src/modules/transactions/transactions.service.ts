@@ -101,7 +101,7 @@ export class TransactionsService {
     walletId: string,
     coinId: string,
     status: TransactionStatusEnum,
-  ): Prisma.UserWhereInput {
+  ): Prisma.TransactionsWhereInput {
     const whereArr = [];
     if (date) {
       const fromDate = new Date(`${date}T00:00:00.000Z`);
