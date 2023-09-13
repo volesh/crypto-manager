@@ -39,9 +39,7 @@ export class CoinsController {
   }
 
   // Get Fiat !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  @ApiBearerAuth()
   @ApiResponse({ type: [FiatResponse] })
-  @UseGuards(AuthGuard('jwt'))
   @Get('/fiat')
   getFiatList(): Promise<Fiat[]> {
     return this.coinsService.getFiatList();
