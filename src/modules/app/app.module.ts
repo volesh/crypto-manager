@@ -1,17 +1,24 @@
-import { Module } from '@nestjs/common';
-import { UserModule } from '../user/user.module';
-import { AuthModule } from '../auth/auth.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { envConfig } from 'src/general/configs/envConfig';
-import { TransactionsModule } from '../transactions/transactions.module';
-import { CoinsModule } from '../coins/coins.module';
+import { Module, OnApplicationBootstrap } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { ScheduleModule } from '@nestjs/schedule';
-import { PrismaService } from 'src/prisma.service';
-import { TokensSchedule } from 'src/cronJobs/tokens.cronjobs';
-import { WalletSchedule } from 'src/cronJobs/wallet.cronjobs';
+import { MailerModule } from '@nestjs-modules/mailer';
+
+import { TokensSchedule } from '../../cronJobs/tokens.cronjobs';
+import { WalletSchedule } from '../../cronJobs/wallet.cronjobs';
+import { envConfig } from '../../general/configs';
+import { TokensHelper } from '../../general/helpers';
+import { PrismaService } from '../../prisma.service';
+// import { ExchangeService } from '../../services/coingecko/exchange.service';
+import { AuthModule } from '../auth/auth.module';
+import { CoinsModule } from '../coins/coins.module';
 import { CoinsService } from '../coins/coins.service';
-import { WalletValuesModule } from '../wallet-values/wallet-values.module';
+import { WalletValuesModule } from '../daily-volume/daily-volume.module';
 import { DepositsModule } from '../deposits/deposits.module';
+import { TransactionsModule } from '../transactions/transactions.module';
+import { UserModule } from '../user/user.module';
+import { UserService } from '../user/user.service';
+import { WalletsModule } from '../wallets/wallets.module';
+import { WalletsService } from '../wallets/wallets.service';
 
 @Module({
   imports: [
@@ -21,6 +28,7 @@ import { DepositsModule } from '../deposits/deposits.module';
     CoinsModule,
     WalletValuesModule,
     DepositsModule,
+    WalletsModule,
     ScheduleModule.forRoot(),
     MailerModule.forRoot({
       transport: {
@@ -32,6 +40,20 @@ import { DepositsModule } from '../deposits/deposits.module';
       },
     }),
   ],
-  providers: [TokensSchedule, PrismaService, WalletSchedule, CoinsService],
+  providers: [PrismaService, CoinsService, WalletsService, UserService, TokensHelper, JwtService, TokensSchedule, WalletSchedule],
 })
-export class AppModule {}
+export class AppModule implements OnApplicationBootstrap {
+  constructor(private readonly prisma: PrismaService) {}
+  async onApplicationBootstrap() {
+    // const fiats = await this.prisma.fiat.findMany();
+    // const exchange = await ExchangeService.getFiatList('USD');
+    // for (const fiat of fiats) {
+    //   const price = exchange.conversion_rates[fiat.code];
+    //   if (price) {
+    //     await this.prisma.fiat.update({ where: { code: fiat.code }, data: { price } });
+    //   }
+    // }
+    // eslint-disable-next-line no-console
+    console.log('Exchange rates loaded successful');
+  }
+}

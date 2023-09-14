@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { envConfig } from 'src/general/configs/envConfig';
-import { PrismaService } from 'src/prisma.service';
+
+import { envConfig } from '../../../general/configs';
+import { PrismaService } from '../../../prisma.service';
 
 @Injectable()
 export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -16,7 +17,7 @@ export class AtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(req: Request, payload: any) {
-    let accessToken = req.get('Authorization').replace('Bearer', '').trim();
+    const accessToken = req.get('Authorization').replace('Bearer', '').trim();
     if (!accessToken) {
       return false;
     }

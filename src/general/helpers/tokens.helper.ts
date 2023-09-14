@@ -1,11 +1,15 @@
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { TokensI } from '../interfaces/tokens/tokens.interface';
+import axios from 'axios';
+
 import { envConfig } from '../configs/envConfig';
-import { Injectable } from '@nestjs/common';
+import { OAuthEnum } from '../enums/oauth.enum';
+import { TokensI } from '../interfaces/tokens/tokens.interface';
 
 @Injectable()
 export class TokensHelper {
   constructor(private readonly jwtService: JwtService) {}
+
   // Generate Tokens !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   async generateTokens(id: string): Promise<TokensI> {
     const accessToken = await this.jwtService.signAsync(
@@ -23,5 +27,20 @@ export class TokensHelper {
       },
     );
     return { accessToken, refreshToken };
+  }
+
+  // Validate OAuth token
+  async validateOAuth(token: string, type: OAuthEnum): Promise<string> {
+    try {
+      if (type === OAuthEnum.google) {
+        const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/tokeninfo', {
+          params: { access_token: token },
+        });
+
+        return data.email;
+      }
+    } catch {
+      throw new UnauthorizedException();
+    }
   }
 }

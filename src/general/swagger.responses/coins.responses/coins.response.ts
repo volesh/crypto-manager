@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { CoinTypeEnum } from '../../enums';
+
 export class CoinsResponse {
   @ApiProperty({
     type: String,
@@ -22,8 +24,8 @@ export class CoinsResponse {
   @ApiProperty({ type: String, example: 'https://www.google.com/' })
   img: string;
 
-  @ApiProperty({ type: Boolean, example: false })
-  isFiat: boolean;
+  @ApiProperty({ type: String, example: 'coin' })
+  type: CoinTypeEnum;
 
   @ApiProperty({ type: Number, example: 4000 })
   spendMoney: number;

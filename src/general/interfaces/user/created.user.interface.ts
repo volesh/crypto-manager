@@ -6,5 +6,4 @@ export interface CreatedUserI {
   fiat?: number;
   invested: number;
   withdraw: number;
-  isInitialized: boolean;
 }

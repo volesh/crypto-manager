@@ -1,25 +1,20 @@
-import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
-import {
-  Body,
-  Controller,
-  Post,
-  UseGuards,
-  Get,
-  Req,
-  Patch,
-} from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { TokensI } from 'src/general/interfaces/tokens/tokens.interface';
-import { ChangePassDto } from './dto/change.pass.dto';
-import { StringresponseI } from 'src/general/interfaces/responses/string.response.interface';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { LoginResponse } from 'src/general/swagger.responses/auth.responses/login.response';
-import { LoginResponseI } from 'src/general/interfaces/user/response.login.interface';
-import { TokenResponse } from 'src/general/swagger.responses/auth.responses/tokens.response';
+
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { StringresponseI } from '../../general/interfaces/responses/string.response.interface';
+import { TokensI } from '../../general/interfaces/tokens/tokens.interface';
+import { LoginResponseI } from '../../general/interfaces/user/response.login.interface';
+import { LoginResponse } from '../../general/swagger.responses/auth.responses/login.response';
+import { TokenResponse } from '../../general/swagger.responses/auth.responses/tokens.response';
+import { Stringresponse } from './../../general/swagger.responses/auth.responses/string.response';
+import { AuthService } from './auth.service';
+import { ChangePassDto } from './dto/change.pass.dto';
 import { FrotgotPassDto } from './dto/forgot.pass.dto';
+import { LoginDto } from './dto/login.dto';
+import { OAuthLoginDto, OAuthRegisterDto } from './dto/oauth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -66,5 +61,19 @@ export class AuthController {
   @Patch('/changePass')
   codeVerefication(@Body() data: ChangePassDto): Promise<StringresponseI> {
     return this.authService.changePassword(data);
+  }
+
+  @Post('/OAuth/login')
+  @ApiBody({ type: OAuthLoginDto })
+  @ApiResponse({ type: LoginResponse })
+  googleLogin(@Body() body: OAuthLoginDto): Promise<LoginResponseI> {
+    return this.authService.oAuthLogin(body);
+  }
+
+  @Post('/OAuth/register')
+  @ApiBody({ type: OAuthRegisterDto })
+  @ApiResponse({ type: LoginResponse })
+  googleRegister(@Body() body: OAuthRegisterDto): Promise<LoginResponseI> {
+    return this.authService.oAuthRegister(body);
   }
 }

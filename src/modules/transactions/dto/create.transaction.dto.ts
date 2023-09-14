@@ -1,9 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, IsUUID } from 'class-validator';
+
+import { CoinTypeEnum } from '../../../general/enums';
+
 export class CreateTransactionDto {
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ type: String, example: 'usd' })
+  @ApiProperty({ type: String, example: 'USD' })
   fromId: string;
 
   @IsString()
@@ -20,4 +23,14 @@ export class CreateTransactionDto {
   @IsNotEmpty()
   @ApiProperty({ type: Number, example: 1 })
   toCount: number;
+
+  @IsEnum(CoinTypeEnum)
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: 'coin' })
+  toCoinType: CoinTypeEnum;
+
+  @IsUUID()
+  @IsNotEmpty()
+  @ApiProperty({ type: String, example: '8b666860-7ebf-4f5a-a512-9897ac38682e' })
+  walletId: string;
 }

@@ -1,34 +1,15 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Req,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Deposits } from '@prisma/client';
+
+import { DepositsEnum, OrderEnum } from '../../general/enums';
+import { PaginationResponseI } from '../../general/interfaces/pagination/pagination.response.interface';
+import { IRequest } from '../../general/interfaces/request/request.interface';
+import { DepositResponse } from '../../general/swagger.responses/deposits.responses/deposit.response';
+import { GetAllDepositsResponse } from '../../general/swagger.responses/deposits.responses/get.all.deposits.response';
 import { DepositsService } from './deposits.service';
 import { CreateDepositDto } from './dto/create-deposit.dto';
-import { IRequest } from 'src/general/interfaces/request/request.interface';
-import { Deposits } from '@prisma/client';
-import { PaginationResponseI } from 'src/general/interfaces/pagination/pagination.response.interface';
-import { DepositsEnum } from 'src/general/enums/deposits.enum';
-import { OrderEnum } from 'src/general/enums/order.enum';
-import { AuthGuard } from '@nestjs/passport';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { DepositResponse } from 'src/general/swagger.responses/deposits.responses/deposit.response';
-import { GetAllDepositsResponse } from 'src/general/swagger.responses/deposits.responses/get.all.deposits.response';
 
 @ApiTags('deposits')
 @Controller('deposits')
@@ -40,37 +21,29 @@ export class DepositsController {
   @ApiCreatedResponse({ type: DepositResponse })
   @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(
-    @Body() createDepositDto: CreateDepositDto,
-    @Req() request: IRequest,
-  ): Promise<DepositResponse> {
-    return this.depositsService.create(createDepositDto, request.user.id);
+  create(@Body() createDepositDto: CreateDepositDto): Promise<DepositResponse> {
+    return this.depositsService.create(createDepositDto);
   }
 
   @ApiBearerAuth()
   @ApiResponse({ type: GetAllDepositsResponse })
+  @ApiParam({ name: 'walletId', required: true })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'per_page', required: false })
   @ApiQuery({ name: 'status', required: false })
   @ApiQuery({ name: 'order_direcrion', required: false, example: 'desc' })
   @UseGuards(AuthGuard('jwt'))
-  @Get()
+  @Get(':walletId')
   findAll(
     @Req() request: IRequest,
-    @Query('page') page: number = 1,
-    @Query('per_page') perPage: number = 10,
+    @Param('walletId') walletId: string,
+    @Query('page') page = 1,
+    @Query('per_page') perPage = 10,
     @Query('status') status?: DepositsEnum,
-    @Query('order_by') orderBy: string = 'createdAt',
+    @Query('order_by') orderBy = 'createdAt',
     @Query('order_direcrion') orderDirecrion: OrderEnum = OrderEnum.DESC,
   ): Promise<PaginationResponseI<Deposits>> {
-    return this.depositsService.findAll(
-      request.user.id,
-      +page,
-      +perPage,
-      status,
-      orderDirecrion,
-      orderBy,
-    );
+    return this.depositsService.findAll(request.user.id, +page, +perPage, status, orderDirecrion, orderBy, walletId);
   }
 
   @ApiBearerAuth()

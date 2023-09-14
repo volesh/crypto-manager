@@ -1,4 +1,5 @@
 import { config } from 'dotenv';
+
 config();
 
 export const envConfig = {
@@ -7,4 +8,5 @@ export const envConfig = {
   refresh_key: process.env.REFRESH_SECRET_KEY,
   admin_email: process.env.ADMIN_EMAIL,
   email_password: process.env.EMAIL_PASSWORD,
+  exchange_api_key: process.env.EXCHANGE_API_KEY,
 };

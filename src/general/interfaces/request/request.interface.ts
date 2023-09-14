@@ -5,6 +5,17 @@ export interface ReqUserI {
   token: string;
 }
 
+export interface ReqUserOAuth {
+  email: string;
+  name: string;
+  accessToken: string;
+  picture: string;
+}
+
 export interface IRequest extends Request {
   user: ReqUserI;
+}
+
+export interface IRequestOAuth extends Request {
+  user: ReqUserOAuth;
 }

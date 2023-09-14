@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+
 import { DepositResponse } from './deposit.response';
 
 export class GetAllDepositsResponse {

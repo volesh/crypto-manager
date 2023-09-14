@@ -10,10 +10,10 @@ COPY package*.json .
 COPY prisma .
 
 RUN npm i
-RUN npm rebuild bcrypt --build-from-source
 
 COPY . .
 
 RUN npx prisma generate
+RUN npm run build
 
 CMD [ "npm", "run", "start:prod" ]

@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_PROD_URL")
 }
 
 enum Status {
@@ -16,23 +16,29 @@ enum Status {
   transfer
 }
 
+enum CoinType {
+  coin
+  fiat
+  stable
+}
+
 enum DepositStatus {
   deposit
   withdraw
 }
 
 model User {
-  id            String         @id @default(uuid())
+  id            String          @id @default(uuid())
   name          String
-  email         String         @unique
-  password      String
-  fixedIncome   Float          @default(0)
-  invested      Float          @default(0)
-  withdraw      Float          @default(0)
-  isInitialized Boolean        @default(false)
+  email         String          @unique
+  password      String?
+  currencyId    String          @default("c6280c4b-4a79-4e45-8291-84d31e1e5a72")
+  currency      Fiat            @relation(fields: [currencyId], references: [id])
+  wallets       Wallets[]
   transactions  Transactions[]
   coins         Coins[]
   walletValues  WalletValues[]
+  accountValues AccountValues[]
   tokens        Tokens[]
   deposits      Deposits[]
 }
@@ -50,29 +56,59 @@ model Transactions {
   user           User     @relation(fields: [userId], references: [id])
   userId         String
   purchse_price  Float    @default(0)
-  status         Status   
+  status         Status
   createdAt      DateTime @default(now())
+  wallet         Wallets  @relation(references: [id], fields: [walletId])
+  walletId       String
+}
+
+model Wallets {
+  id           String         @id @default(uuid())
+  name         String
+  fixedIncome  Float          @default(0)
+  invested     Float          @default(0)
+  withdraw     Float          @default(0)
+  userId       String
+  user         User           @relation(references: [id], fields: [userId])
+  coins        Coins[]
+  transactions Transactions[]
+  deposits     Deposits[]
+  walletValues WalletValues[]
 }
 
 model Coins {
-  id         String @id @default(uuid())
-  coinId     String
-  coinName   String
-  symbol     String
-  amount     Float
-  img        String
-  isFiat     Boolean
-  spendMoney Float
-  avgPrice   Float
-  fromTransactions  Transactions[] @relation("fromCoinRelation")
-  toTransactions    Transactions[] @relation("toCoinRelation")
-  user       User   @relation(fields: [userId], references: [id])
-  userId     String
+  id               String         @id @default(uuid())
+  coinId           String
+  coinName         String
+  symbol           String
+  amount           Float
+  img              String
+  type             CoinType
+  spendMoney       Float
+  avgPrice         Float
+  fromTransactions Transactions[] @relation("fromCoinRelation")
+  toTransactions   Transactions[] @relation("toCoinRelation")
+  user             User           @relation(references: [id], fields: [userId])
+  userId           String
+  wallet           Wallets        @relation(references: [id], fields: [walletId])
+  walletId         String
 }
 
 model WalletValues {
   id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
+  timestamp BigInt
+  date      String
+  amount    Float
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  wallet    Wallets  @relation(references: [id], fields: [walletId])
+  walletId  String
+}
+
+model AccountValues {
+  id        String   @id @default(uuid())
+  date      String
+  timestamp BigInt
   amount    Float
   user      User     @relation(fields: [userId], references: [id])
   userId    String
@@ -81,20 +117,22 @@ model WalletValues {
 model Tokens {
   id           String   @id @default(uuid())
   accessToken  String
-  refreshToken String
+  refreshToken String?
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id])
   userId       String
 }
 
 model Deposits {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
+  id        String        @id @default(uuid())
+  createdAt DateTime      @default(now())
   amount    Float
-  currency  String   @default("usd")
+  code      String        @default("USD")
   status    DepositStatus
-  user      User     @relation(fields: [userId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
   userId    String
+  wallet    Wallets       @relation(fields: [walletId], references: [id])
+  walletId  String
 }
 
 model ActionTokens {
@@ -103,4 +141,15 @@ model ActionTokens {
   value     Int
   type      String
   userEmail String
+}
+
+model Fiat {
+  id        String   @id @default(uuid())
+  updatedAt DateTime @default(now()) @updatedAt
+  code      String   @unique
+  name      String
+  symbol    String
+  img       String
+  price     Float
+  user      User[]
 }

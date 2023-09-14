@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CoinsService } from './coins.service';
+
+import { PrismaService } from '../../prisma.service';
 import { CoinsController } from './coins.controller';
-import { PrismaService } from 'src/prisma.service';
+import { CoinsService } from './coins.service';
 
 @Module({
   controllers: [CoinsController],

@@ -1,8 +1,9 @@
-import { PrismaService } from './../../prisma.service';
 import { Module } from '@nestjs/common';
-import { DepositsService } from './deposits.service';
-import { DepositsController } from './deposits.controller';
+
 import { CoinsService } from '../coins/coins.service';
+import { PrismaService } from './../../prisma.service';
+import { DepositsController } from './deposits.controller';
+import { DepositsService } from './deposits.service';
 
 @Module({
   controllers: [DepositsController],
