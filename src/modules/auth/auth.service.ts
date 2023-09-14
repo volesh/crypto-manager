@@ -129,9 +129,25 @@ export class AuthService {
       email: validatedEmail,
     });
     if (!user) {
-      throw new NotFoundException(`User woth email "${email}" not found`);
+      throw new NotFoundException(`User with email "${email}" not found`);
     }
-    const random = this.generateRandom();
+
+    const token = await this.prisma.actionTokens.findFirst({
+      where: { type: TokensTypeEnum.ForgotPass, userEmail: email },
+    });
+
+    let random = token?.value;
+
+    if (!random) {
+      random = this.generateRandom();
+      await this.prisma.actionTokens.create({
+        data: {
+          value: random,
+          type: TokensTypeEnum.ForgotPass,
+          userEmail: validatedEmail,
+        },
+      });
+    }
 
     await this.mailerService.sendMail({
       from: 'No Reply',
@@ -140,13 +156,6 @@ export class AuthService {
       html: `<div>Verefication code <b>${random}</b></div>`,
     });
 
-    await this.prisma.actionTokens.create({
-      data: {
-        value: random,
-        type: TokensTypeEnum.ForgotPass,
-        userEmail: validatedEmail,
-      },
-    });
     return { status: 'Email sended' };
   }
 
