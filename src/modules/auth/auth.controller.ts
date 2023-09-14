@@ -55,14 +55,6 @@ export class AuthController {
     return this.authService.forgotPass(email);
   }
 
-  // Resend code !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  @ApiBody({ type: FrotgotPassDto })
-  @ApiResponse({ type: Stringresponse })
-  @Post('/forgotPass/resend')
-  resendCode(@Body() { email }: FrotgotPassDto): Promise<StringresponseI> {
-    return this.authService.forgotPass(email);
-  }
-
   // Change password !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   @ApiBody({ type: ChangePassDto })
   @ApiResponse({ type: Stringresponse })
