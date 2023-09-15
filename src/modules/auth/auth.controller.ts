@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -42,7 +42,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiResponse({ type: TokenResponse })
   @UseGuards(AuthGuard('jwt-refresh'))
-  @Get('/refresh')
+  @Post('/refresh')
   refresh(@Req() request: IRequest): Promise<TokensI> {
     return this.authService.refresh(request.user.id, request.user.token);
   }
