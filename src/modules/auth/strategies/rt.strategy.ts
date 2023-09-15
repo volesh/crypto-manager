@@ -10,14 +10,14 @@ import { PrismaService } from '../../../prisma.service';
 export class RtStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
   constructor(private readonly prisma: PrismaService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromBodyField('token'),
       secretOrKey: envConfig.refresh_key,
       passReqToCallback: true,
     });
   }
 
   async validate(req: Request, payload: any) {
-    const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
+    const refreshToken = req.body.token;
 
     if (!refreshToken) {
       return false;
