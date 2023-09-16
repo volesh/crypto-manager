@@ -14,7 +14,7 @@ import { AuthService } from './auth.service';
 import { ChangePassDto } from './dto/change.pass.dto';
 import { FrotgotPassDto } from './dto/forgot.pass.dto';
 import { LoginDto } from './dto/login.dto';
-import { OAuthLoginDto, OAuthRegisterDto } from './dto/oauth.dto';
+import { OAuthDto } from './dto/oauth.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -64,16 +64,16 @@ export class AuthController {
   }
 
   @Post('/OAuth/login')
-  @ApiBody({ type: OAuthLoginDto })
+  @ApiBody({ type: OAuthDto })
   @ApiResponse({ type: LoginResponse })
-  googleLogin(@Body() body: OAuthLoginDto): Promise<LoginResponseI> {
+  googleLogin(@Body() body: OAuthDto): Promise<LoginResponseI> {
     return this.authService.oAuthLogin(body);
   }
 
   @Post('/OAuth/register')
-  @ApiBody({ type: OAuthRegisterDto })
+  @ApiBody({ type: OAuthDto })
   @ApiResponse({ type: LoginResponse })
-  googleRegister(@Body() body: OAuthRegisterDto): Promise<LoginResponseI> {
+  googleRegister(@Body() body: OAuthDto): Promise<LoginResponseI> {
     return this.authService.oAuthRegister(body);
   }
 }

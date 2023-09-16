@@ -30,14 +30,12 @@ export class TokensHelper {
   }
 
   // Validate OAuth token
-  async validateOAuth(token: string, type: OAuthEnum): Promise<string> {
+  async validateOAuth(token: string, type: OAuthEnum): Promise<{ email: string; name: string }> {
     try {
       if (type === OAuthEnum.google) {
-        const { data } = await axios.get('https://www.googleapis.com/oauth2/v3/tokeninfo', {
-          params: { access_token: token },
-        });
+        const { data } = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
 
-        return data.email;
+        return { email: data.email, name: data.name };
       }
     } catch {
       throw new UnauthorizedException();
